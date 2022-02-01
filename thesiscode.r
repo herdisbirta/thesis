@@ -6,8 +6,9 @@ rm(list = ls())
 
 
 # Libraries
-library(rvest)
-library(BatchGetSymbols)
+library(rvest)  # To retrieve wikipedia info
+library(BatchGetSymbols)  # To retrieve stock prices from yahoo
+library(httr) # For function user_agent?
 
 # Read in stock data
 OSB <- read.csv("OSB.csv", sep = ";")
@@ -64,17 +65,21 @@ firms = as.data.frame(read_html(url) %>%
                        html_table()) #retrieve table
 
 # Rename one wrong ticker, add ".OL" to each ticker so it can be retrieved later
-firms$Ticker.symbol = paste0(gsub("AKERBP","AKRBP",firms$Ticker.symbol),".OL")
+firms$ticker = paste0(gsub("AKERBP","AKRBP",firms$Ticker.symbol),".OL")
+
+# Remove unneccessary information from data frame
+firms = select(firms,"company" = Company,ticker)
 
 # Create vector of tickers
-tickers.obx = as.vector(firms$Ticker.symbol)
+tickers.obx = as.vector(firms$ticker)
 
 #Using tickers vector to obtain stock data from Yahoo Finance
 obx.stocks = BatchGetSymbols(tickers = tickers.obx,
                               first.date = "2010-01-01",
                               last.date = "2019-12-31",
                               freq.data = "daily",
-                              do.cache = FALSE
+                              do.cache = FALSE,
+                              thresh.bad.data = 0 # Only skip ticker if no data
 )
 
 # Check number of rows
@@ -85,7 +90,13 @@ print(obx.stocks$df.control)
 stocks = obx.stocks$df.tickers
 
 # Add company name (for searching purposes maybe?)
-# stocks$firm = 
+stocks = left_join(stocks,firms,by="ticker")
 
 # Keep only the information we will use (ticker, date, opening+closing price)
-stocks = select(stocks,ticker,ref.date,price.open,price.close)
+stocks = select(stocks,company,ticker,ref.date,price.open,price.close)
+
+# Calculate a daily price measure
+for(i in 1:length(stocks)){
+  stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
+}
+
