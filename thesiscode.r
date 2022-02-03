@@ -1,6 +1,4 @@
 
-rm(list = ls())
-
 
 # R CODE MASTER THESIS:
 
@@ -11,6 +9,7 @@ library(RSelenium)
 library(httr)
 library(stringr)
 library(BatchGetSymbols)
+library(lexicon)
 
 # Extract URLs and dates for each article
 articles <- 1:20
@@ -30,6 +29,7 @@ for (article in articles) {
 }
 
 # Log in to DN subscription
+# Only run after having closed R/cleaned environment!
 url <- "https://www.dn.no/auth/login"
 uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
 session <- session(url, user_agent(uastring))
@@ -61,9 +61,11 @@ text <- text %>%
   str_replace_all("[^[[:alpha:]][[:space:]]]", "") %>% 
   str_remove("classcarouselitemtxt carouseljobbsearchnarrowitemtxt\n                                a\n")
 
+text = as.data.frame(text)
 
+text$date = url.list$Dates
 
-
+text$url = url.list$URLs
 
 
 # STOCK PRICE RETRIEVAL
@@ -110,3 +112,7 @@ for(i in 1:length(stocks)){
   stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
 }
 
+
+# Dictionary stuff
+dict = lexicon::hash_sentiment_loughran_mcdonald
+head(dict)
