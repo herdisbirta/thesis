@@ -10,6 +10,7 @@ library(httr)
 library(stringr)
 library(BatchGetSymbols)
 library(lexicon)
+library(translateR)
 
 # Extract URLs and dates for each article
 articles <- 1:20
@@ -61,6 +62,7 @@ text <- text %>%
   str_replace_all("[^[[:alpha:]][[:space:]]]", "") %>% 
   str_remove("classcarouselitemtxt carouseljobbsearchnarrowitemtxt\n                                a\n")
 
+# Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
 
 text$date = url.list$Dates
@@ -113,6 +115,20 @@ for(i in 1:length(stocks)){
 }
 
 
-# Dictionary stuff
-dict = lexicon::hash_sentiment_loughran_mcdonald
-head(dict)
+
+
+
+
+
+# Translating Loughran and McDonald dictionary 
+#dict = lexicon::hash_sentiment_loughran_mcdonald
+
+#LM.norsk <- translateR::translate(dataset = dict,
+#                        content.field = "x",
+#                        source.lang = "en",
+#                        target.lang = "no",
+#                        google.api.key = "AIzaSyA5q6Or5MEVBJNofdmUmiHOdquj4WZHwxw")
+
+#save(LM.norsk, file = "LMNorsk.RData")
+
+load("LMNorsk.RData")
