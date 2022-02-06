@@ -179,7 +179,5 @@ stopwords(language = "no")
 #save(LM.norsk, file = "LMNorsk.RData")
 
 load("LMNorsk.RData")
-# Dictionary stuff
-dict = lexicon::hash_sentiment_loughran_mcdonald
-head(dict)
+
 
