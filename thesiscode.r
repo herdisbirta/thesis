@@ -10,6 +10,7 @@ library(httr)
 library(stringr)
 library(BatchGetSymbols)
 library(lexicon)
+library(stopwords)
 
 # Extract URLs and dates for each article
 articles <- 1:20
@@ -67,6 +68,12 @@ text$date = url.list$Dates
 
 text$url = url.list$URLs
 
+# Save as Rdata
+save(text,file = "data.Rdata")
+
+rm(list = ls())
+load("data.Rdata")
+
 
 # STOCK PRICE RETRIEVAL
 
@@ -81,6 +88,12 @@ firms$ticker = paste0(gsub("AKERBP","AKRBP",firms$Ticker.symbol),".OL")
 
 # Remove unneccessary information from data frame
 firms = select(firms,"company" = Company,ticker)
+
+# Change the company names so they match with how they are most frequently referred to
+# (example: "Yara International" is most often referred to as simply "Yara")
+firms$company = gsub("Yara International", "Yara",firms$company)
+# MORE EXAMPLES OF THIS?
+
 
 # Create vector of tickers
 tickers.obx = as.vector(firms$ticker)
@@ -113,6 +126,29 @@ for(i in 1:length(stocks)){
 }
 
 
+
+# Connect articles and companies we're interested in
+
+
+# Get the names of the companies we have stock price data for (23 companies)
+companies = unique(stocks$company)
+
+# Create corpus for each article and each company
+# (We can use this loop to remove stopwords of relevant articles etc.)
+for(i in 1:nrow(text)){
+  for(j in 1:length(companies)){
+    ifelse(companies[j]%in%text$text,
+           assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),
+           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i])    # Will change this line later, this is just to see if there are no results or if code is wrong
+    )
+  }
+}
+
+# Code to retrieve stopwords with package "stopwords"
+stopwords(language = "no")
+
+
 # Dictionary stuff
 dict = lexicon::hash_sentiment_loughran_mcdonald
 head(dict)
+
