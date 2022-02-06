@@ -37,7 +37,15 @@ firms = select(firms,"company" = Company,ticker)
 
 # Change the company names so they match with how they are most frequently referred to
 # (example: "Yara International" is most often referred to as simply "Yara")
-firms$company = gsub("Yara International", "Yara",firms$company)
+firms$company = 
+  firms$company %>% 
+  gsub("Yara International", "Yara",.) %>% 
+  gsub("Subsea 7","Subsea",.) %>% 
+  gsub("Scatec Solar","Scatec",.) %>% 
+  gsub("Lerøy Seafood Group","Lerøy",.) %>% 
+  gsub("Gjensidige Forsikring","Gjensidige",.)
+    
+    
 # MORE EXAMPLES OF THIS?
 
 
@@ -128,20 +136,13 @@ text$date = url.list$Dates
 
 text$url = url.list$URLs
 
-# Save as Rdata
-save(text,file = "data.Rdata")
-
-rm(list = ls())
-load("data.Rdata")
-
-
 
 
 
 # Connect articles and companies we're interested in
 
 
-# Get the names of the companies we have stock price data for (23 companies)
+# Get the names of the companies we have stock price data for
 companies = unique(stocks$company)
 
 # Create corpus for each article and each company
@@ -150,7 +151,7 @@ for(i in 1:nrow(text)){
   for(j in 1:length(companies)){
     ifelse(companies[j]%in%text$text,
            assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),
-           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i])    # Will change this line later, this is just to see if there are no results or if code is wrong
+           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i])    # This line is just to see if the code works
     )
   }
 }
