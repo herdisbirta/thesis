@@ -81,6 +81,11 @@ for(i in 1:length(stocks)){
 }
 
 
+
+
+
+# NEWS ARTICLE RETRIEVAL 
+
 # Extract URLs and dates for each article
 articles <- 1:20
 html <- read_html("DN.html")  # HTML code from DN
@@ -141,8 +146,9 @@ text$url = url.list$URLs
 
 
 
-# Connect articles and companies we're interested in
 
+
+# CONNECT ARTICLES AND COMPANIES
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$company)
@@ -167,7 +173,8 @@ stopwords(language = "no")
 
 
 
-# Translating Loughran and McDonald dictionary 
+# TRANSLATION OF LOUGHRAN AND MCDONALD DICTIONARY
+
 #dict = lexicon::hash_sentiment_loughran_mcdonald
 
 #LM.norsk <- translateR::translate(dataset = dict,
