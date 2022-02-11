@@ -87,8 +87,8 @@ for(i in 1:length(stocks)){
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-articles <- 1:20
-html <- read_html("DN.html")  # HTML code from DN
+articles <- 1:200
+html <- read_html("OsloDN.html")  # HTML code from DN
 URLs <- list()
 Dates <- list()
 
@@ -153,16 +153,46 @@ text$url = url.list$URLs
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$company)
 
-# Create corpus for each article and each company
-# (We can use this loop to remove stopwords of relevant articles etc.)
+
+
+# DNB search test
+companies = unique(stocks$company)
+
+dnb = data.frame("date" = text$date,"text" = NA)
+
 for(i in 1:nrow(text)){
-  for(j in 1:length(companies)){
-    ifelse(companies[j]%in%text$text,
-           assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),
-           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i])    # This line is just to see if the code works
+  for(j in 1:nrow(dnb)){
+    dnb$text[j] = ifelse(
+      str_detect(text$text[i],"DNB"),
+      text$text[i],
+      NA
     )
   }
 }
+
+
+
+# Trying to create a nice data frame for the results
+df = data.frame(matrix(ncol = length(companies)+1,nrow = nrow(text)))
+mycols = c("date",companies)
+colnames(df) = mycols
+df$date = text$date
+
+
+
+
+# Which articles have company mentions?
+# Creates an object for each article that has a company mention
+for(i in 1:nrow(text)){
+  for(j in 1:length(companies)){
+    ifelse(str_detect(text$text[i],companies[j]),    # If the company name j is in article i
+           assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),    # Yes: Create an object with the article
+           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i]))    # No: Create an object with the article with NA in the front
+    rm(list = ls(pattern = "^NA"))    # Delete the NA objects
+    
+  }
+} 
+
 
 # Code to retrieve stopwords with package "stopwords"
 stopwords(language = "no")
