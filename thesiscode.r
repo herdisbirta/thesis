@@ -87,7 +87,7 @@ for(i in 1:length(stocks)){
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-articles <- 1:20
+articles <- 1
 html <- read_html("DN.html")  # HTML code from DN
 URLs <- list()
 Dates <- list()
@@ -102,6 +102,7 @@ for (article in articles) {
     html_attr("datetime")
   url.list <- data.frame(Dates, URLs)
 }
+
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
