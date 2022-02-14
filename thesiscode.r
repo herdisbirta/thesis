@@ -12,73 +12,120 @@ library(BatchGetSymbols)
 library(lexicon)
 library(translateR)
 library(stopwords)
+library(lubridate)
 
 
 # STOCK PRICE RETRIEVAL
 
-# List of OBX companies (from June 2020, maybe we will edit this manually to reflect 2019 info?)
-url = "https://en.wikipedia.org/wiki/OBX_Index" 
-firms = as.data.frame(read_html(url) %>% 
-                        html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>% #table containing the information
-                        html_table()) #retrieve table
+# List of ALL listed companies
+url <- "https://en.wikipedia.org/wiki/List_of_companies_listed_on_the_Oslo_Stock_Exchange"
+all.firms <- as.data.frame(read_html(url) %>% 
+                             html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
+                             html_table()) #retrieve table
 
-# Manually go over and change wrong tickers,
-firms$ticker = 
-  firms$Ticker.symbol %>% 
+# Change format of first day of listing column
+all.firms$First.day.of.listing = 
+  as.Date(all.firms$First.day.of.listing, format= "%d %B %Y")
+
+# Filter to relevant time period
+all.firms = 
+  all.firms %>% 
+  filter(First.day.of.listing <= "2019-12-31")
+
+# Were any companies delisted?
+url2 = "https://en.wikipedia.org/wiki/List_of_companies_delisted_from_Oslo_Stock_Exchange"
+delisted.firms = as.data.frame(read_html(url2) %>% 
+                                 html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
+                                 html_table()) #retrieve table
+
+
+inner_join(all.firms,delisted.firms,by = "Company")
+
+# Seems like only Elkem was delisted in or after 2005, the code will automatically 
+# exclude it since the stock price info will not be available after delisting
+
+# Get tickers
+
+# Manually rename wrong tickers
+all.firms$Ticker = 
+  all.firms$Ticker %>% 
   gsub("AKERBP","AKRBP",.) %>% 
-  gsub("SSO","SCATC",.) %>% 
-  gsub("SCH","SCHA",.)
-  
-  
-# add ".OL" to each ticker so it can be retrieved later
-firms$ticker = paste0(firms$ticker,".OL")
+  gsub("AKA","AKAST",.) %>% 
+  gsub("ARCHER","ARCH",.) %>% 
+  gsub("ASETEK","ASTK",.) %>% 
+  gsub("AVANCE","AGAS",.) %>% 
+  gsub("BEL","BELCO",.) %>% 
+  gsub("BON","BONHR",.) %>% 
+  gsub("BDRILL","BORR",.) %>% 
+  gsub("BOUVET","BOUV",.) %>% 
+  gsub("COV","CONTX",.) %>% 
+  gsub("CRAYON","CRAYN",.) %>% 
+  gsub("FKRAFT","FKRFT",.) %>% 
+  gsub("ITE","ITERA",.) %>% 
+  gsub("NANO","NANOV",.) %>% 
+  gsub("PROTCT","PROT",.) %>% 
+  gsub("REC","RECSI",.) %>% 
+  gsub("SALMON","SACAM",.) %>% 
+  gsub("SBX","GEG",.) %>% 
+  gsub("SRBANK","SRBNK",.) %>% 
+  gsub("STRONG","STRO",.) %>% 
+  gsub("VISTIN","VISTN",.)
 
-# Remove unneccessary information from data frame
-firms = select(firms,"company" = Company,ticker)
-
-# Change the company names so they match with how they are most frequently referred to
-# (example: "Yara International" is most often referred to as simply "Yara")
-firms$company = 
-  firms$company %>% 
+# Manually change company names to their more "referred-to" versions
+# (Subsea 7 becomes Subsea, Yara international becomes Yara, etc.) (more examples?)
+# Remove "*" and ".", remove "ASA"
+all.firms$Company = 
+  all.firms$Company %>% 
   gsub("Yara International", "Yara",.) %>% 
   gsub("Subsea 7","Subsea",.) %>% 
   gsub("Scatec Solar","Scatec",.) %>% 
   gsub("Lerøy Seafood Group","Lerøy",.) %>% 
-  gsub("Gjensidige Forsikring","Gjensidige",.)
-    
-    
-# MORE EXAMPLES OF THIS?
+  gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
+  gsub("\\*","",.) %>% 
+  gsub("\\.","",.) %>% 
+  gsub(" ASA","",.)
+
+# Edit ticker to be on the format "TICKER.OL"
+all.firms$ticker = paste0((gsub("OSE: ","",all.firms$Ticker)),".OL")
+
+# Select relevant columns
+all.firms = 
+  all.firms %>% 
+  select(Company,ticker,First.day.of.listing)
 
 
 # Create vector of tickers
-tickers.obx = as.vector(firms$ticker)
+all.tickers = as.vector(all.firms$ticker)
 
-#Using tickers vector to obtain stock data from Yahoo Finance
-obx.stocks = BatchGetSymbols(tickers = tickers.obx,
-                             first.date = "2010-01-01",
-                             last.date = "2019-12-31",
-                             freq.data = "daily",
-                             do.cache = FALSE,
-                             thresh.bad.data = 0 # Only skip ticker if no data
+# Using tickers vector to obtain stock data from Yahoo Finance
+all.stocks <- BatchGetSymbols(tickers = all.tickers,
+                              first.date = "2005-01-01",
+                              last.date = "2019-12-31",
+                              freq.data = "daily",
+                              do.cache = FALSE
 )
 
-# Check number of rows
-# We  had 25 tickers and we have 25 rows
-print(obx.stocks$df.control)
+# How many companies do we have? (95)
+# We originally had 183 tickers for companies, some only had price info for
+# <75% of the time period (and was therefore skipped), some tickers didn't have
+# any info (deregistered or acquired by other companies and therefore no info)
+sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
 # Convert stock information into a data frame
-stocks = obx.stocks$df.tickers
+stocks = all.stocks$df.tickers
 
-# Add company name (for searching purposes maybe?)
-stocks = left_join(stocks,firms,by="ticker")
-
-# Keep only the information we will use (ticker, date, opening+closing price)
-stocks = select(stocks,company,ticker,ref.date,price.open,price.close)
+# Add company name (for searching purposes)
+stocks = left_join(stocks,all.firms,by="ticker")
 
 # Calculate a daily price measure
 for(i in 1:length(stocks)){
   stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
 }
+
+# Only select columns we are interested in
+stocks = 
+  stocks %>% 
+  select(Company,ticker,"date"=ref.date,av.price)
 
 
 
@@ -87,10 +134,9 @@ for(i in 1:length(stocks)){
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-articles <- 1
+articles <- 1:20
 html <- read_html("DN.html")  # HTML code from DN
 articles <- 1:200
-html <- read_html("OsloDN.html")  # HTML code from DN
 URLs <- list()
 Dates <- list()
 
@@ -142,57 +188,73 @@ text <- text %>%
 # Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
 
-text$date = url.list$Dates
+text$date = as.Date(url.list$Dates, "%d.%m.%Y")
 
 text$url = url.list$URLs
-
-
-
 
 
 
 # CONNECT ARTICLES AND COMPANIES
 
 # Get the names of the companies we have stock price data for
-companies = unique(stocks$company)
+companies = unique(stocks$Company)
+
+# Create a nice data frame for the results
+mycols = c("text","date","url",companies)
+df = data.frame(matrix(ncol = length(mycols),nrow = nrow(text)))
+colnames(df) = mycols
+df$date = text$date
+df$text = text$text
+df$url = text$url
 
 
+# An idea I had was to try to find out which companies are mentioned and which are
+# not, so we can exclude the companies that aren't mentioned at all and then search
+# for how many times the remaining companies are mentioned (maybe easier to work with
+# fewer companies), this doesn't work yet for some reason but DNB example below works
+for(i in 1:nrow(df)){
+  for(j in 1:length(companies)){
+    for(k in 4:ncol(df)){
+      df[i,k] = ifelse(str_detect(df$text[i],companies[j]),1,0)
+    }
+  }
+}
 
-# DNB search test
-companies = unique(stocks$company)
 
-dnb = data.frame("date" = text$date,"text" = NA)
+# DNB test (same concept as above but only for DNB)
+dnbcols = c("text","date","url","DNB")
+dnb.df = data.frame(matrix(ncol = length(dnbcols),nrow = nrow(text)))
+colnames(dnb.df) = dnbcols
+dnb.df$date = text$date
+dnb.df$text = text$text
+dnb.df$url = text$url
 
-for(i in 1:nrow(text)){
-  for(j in 1:nrow(dnb)){
-    dnb$text[j] = ifelse(
-      str_detect(text$text[i],"DNB"),
-      text$text[i],
-      NA
-    )
+dnb = c("DNB")
+for(i in 1:nrow(dnb.df)){
+  for(j in 1:length(dnb)){
+    for(k in 4:ncol(dnb.df)){
+      dnb.df[i,k] = ifelse(str_detect(dnb.df$text[i],dnb[j]),1,0)
+    }
   }
 }
 
 
 
-# Trying to create a nice data frame for the results
-df = data.frame(matrix(ncol = length(companies)+1,nrow = nrow(text)))
-mycols = c("date",companies)
-colnames(df) = mycols
-df$date = text$date
 
+# Previous attempt below
 
 
 
 # Which articles have company mentions?
 # Creates an object for each article that has a company mention
+# I know this works. Also if for example DNB and Equinor are both mentioned in
+# an article, it creates 2 objects for each company.
 for(i in 1:nrow(text)){
   for(j in 1:length(companies)){
     ifelse(str_detect(text$text[i],companies[j]),    # If the company name j is in article i
            assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),    # Yes: Create an object with the article
            assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i]))    # No: Create an object with the article with NA in the front
     rm(list = ls(pattern = "^NA"))    # Delete the NA objects
-    
   }
 } 
 
