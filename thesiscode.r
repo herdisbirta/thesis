@@ -134,9 +134,8 @@ stocks =
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-articles <- 1:20
-html <- read_html("DN.html")  # HTML code from DN
-articles <- 1:200
+html <- read_html("DN1.html")  # HTML code from DN
+articles <- 1
 URLs <- list()
 Dates <- list()
 
@@ -150,6 +149,12 @@ for (article in articles) {
     html_attr("datetime")
   url.list <- data.frame(Dates, URLs)
 }
+
+# It's including more links than articles (will look more into this)
+grep("https://www.dn.no/marked/notis", URLs)
+
+URLs <- URLs[-c(1015, 1016, 4709, 4728, 5812, 6029, 6077)]
+
 
 
 # Log in to DN subscription
