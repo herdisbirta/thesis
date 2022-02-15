@@ -41,8 +41,7 @@ delisted.firms = as.data.frame(read_html(url2) %>%
 
 inner_join(all.firms,delisted.firms,by = "Company")
 
-# Seems like only Elkem was delisted in or after 2005, the code will automatically 
-# exclude it since the stock price info will not be available after delisting
+# No company was delisted after 2005.
 
 # Get tickers
 
@@ -99,16 +98,16 @@ all.tickers = as.vector(all.firms$ticker)
 
 # Using tickers vector to obtain stock data from Yahoo Finance
 all.stocks <- BatchGetSymbols(tickers = all.tickers,
-                              first.date = "2005-01-01",
+                              first.date = "2014-01-01",
                               last.date = "2019-12-31",
                               freq.data = "daily",
                               do.cache = FALSE
 )
 
-# How many companies do we have? (95)
+# How many companies do we have? (115)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
-# any info (deregistered or acquired by other companies and therefore no info)
+# any info
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
 # Convert stock information into a data frame
@@ -127,14 +126,15 @@ stocks =
   stocks %>% 
   select(Company,ticker,"date"=ref.date,av.price)
 
-
+# Remove unneccessary objects from environment
+rm(list = c("all.firms","all.stocks","delisted.firms","all.tickers","url","url2","i"))
 
 
 
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-html <- read_html("2014-Q1.html")  # HTML code from DN
+html <- read_html("2016-Q1.html")  # HTML code from DN
 articles <- 1
 URLs <- list()
 Dates <- list()
@@ -150,6 +150,8 @@ for (article in articles) {
   url.list <- data.frame(Dates, URLs)
 }
 
+# Are there duplicate urls?
+nrow(url.list)==nrow(unique(url.list))
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
