@@ -134,7 +134,7 @@ stocks =
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-html <- read_html("DN1.html")  # HTML code from DN
+html <- read_html("2014-Q1.html")  # HTML code from DN
 articles <- 1
 URLs <- list()
 Dates <- list()
@@ -149,12 +149,6 @@ for (article in articles) {
     html_attr("datetime")
   url.list <- data.frame(Dates, URLs)
 }
-
-# It's including more links than articles (will look more into this)
-grep("https://www.dn.no/marked/notis", URLs)
-
-URLs <- URLs[-c(1015, 1016, 4709, 4728, 5812, 6029, 6077)]
-
 
 
 # Log in to DN subscription
@@ -181,14 +175,22 @@ for (url in URLs) {
   text <- rbind(text, toString(html))
 }
 
+save(text, file = "text.RData")
+
+load("text.RData")
+
 # Remove HTML code and everything but letters
 text <- text %>%  
   str_remove_all("<span.*?p>") %>% 
   str_replace_all("<p", "") %>% 
   str_replace_all("</p>", "") %>% 
   str_remove_all("<a.*?>") %>%
+  str_replace_all("\n", "") %>% 
   str_replace_all("[^[[:alpha:]][[:space:]]]", "") %>% 
-  str_remove("classcarouselitemtxt carouseljobbsearchnarrowitemtxt\n                                a\n")
+  str_remove("classcarouselitemtxt carouseljobbsearchnarrowitemtxt                                a") %>% 
+  str_remove("classarticleauthorname") %>% 
+  str_remove("span classarticleauthorseparatorogspan                        TDN Direkta")
+
 
 # Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
