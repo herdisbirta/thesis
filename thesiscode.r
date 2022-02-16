@@ -133,31 +133,48 @@ stocks =
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-articles <- 1:20
-html <- read_html("Q1.2014.html")  # HTML code from DN
-articles <- 1:200
 articles <- 1
 URLs <- list()
 Dates <- list()
+url.list <- as.character()
+date.list <- as.character()
 
-for (article in articles) {
-  URLs <- html %>% # find URLs for each article
+files = list.files(pattern="\\.(html)$") # get list of .html files
+
+path <- function(year, n) {
+files <- paste0(year, "-Q", n, ".html")
+}
+
+files <- sort(rbind(path(2019, 4:1), path(2018, 4:1), path(2017, 4:1), 
+               path(2016, 4:1), path(2015, 4:1), path(2014, 4:1)), decreasing = T)
+
+
+for (file in files) {
+  URLs <- read_html(file) %>% # find URLs for each article
     html_nodes("h3") %>% 
     html_nodes("a") %>%  
     html_attr("href")
-  Dates <- html %>% 
+  Dates <- read_html(file) %>% 
     html_nodes("time") %>% # find dates for each article
     html_attr("datetime")
-  url.list <- data.frame(Dates, URLs)
+  url.list <- append(url.list, URLs)
+  date.list <- append(date.list, Dates)
 }
 
+
 # Are there duplicate urls?
-nrow(url.list)==nrow(unique(url.list))
+nrow((distinct(as.data.frame(url.list))))
 
 # It's including more links than articles (will look more into this)
-grep("https://www.dn.no/marked/notis", URLs)
+grep("notis", url.list)
 
-URLs <- URLs[-c(1015, 1016, 4709, 4728, 5812, 6029, 6077)]
+grep("https://www.dn.no/marked/2-1-", url.list)
+
+grep("https://www.dn.no/arbeidsliv/2-1", url.list)
+
+grep("https://www.dn.no/personvern/handel/slar-alarm-om-personvern/1-1-5397744", url.list)
+
+url.list <- url.list[-c(500, 996, 997, 4679, 4698, 4789, 4783, 5260, 5521, 5625, 5782, 5999, 6012, 6047, 7095, 10686, 10793, 15071)]
 
 
 # Log in to DN subscription
@@ -174,22 +191,21 @@ session_submit(session, fill, submit = NULL, config(referer = session$url))
 # Extract text from each article
 text <- list()
 
-for (url in URLs) {
+for (url in url.list) {
   jump <- session %>% 
     session_jump_to(url)  # Jump to each URL logged in
-  if(RCurl::url.exists(url)==TRUE){
   html <- read_html(jump) %>% 
     html_nodes("article") %>% 
     html_nodes("section") %>% 
     html_nodes("p")
   text <- rbind(text, toString(html))
-  }
 }
 
-# save(text, file = "text.RData")
+save(text, file = "text.RData")
 
 # load("text.RData")
 
+nrow((distinct(as.data.frame(url.list))))
 
 # Remove HTML code and everything but letters
 text <- text %>%  
