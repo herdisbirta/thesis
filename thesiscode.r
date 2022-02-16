@@ -1,5 +1,3 @@
-
-
 # R CODE MASTER THESIS:
 
 
@@ -13,6 +11,7 @@ library(lexicon)
 library(translateR)
 library(stopwords)
 library(lubridate)
+library(RCurl)
 
 
 # STOCK PRICE RETRIEVAL
@@ -41,7 +40,8 @@ delisted.firms = as.data.frame(read_html(url2) %>%
 
 inner_join(all.firms,delisted.firms,by = "Company")
 
-# No company was delisted after 2005.
+# Seems like only Elkem was delisted in or after 2005, the code will automatically 
+# exclude it since the stock price info will not be available after delisting
 
 # Get tickers
 
@@ -104,10 +104,10 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               do.cache = FALSE
 )
 
-# How many companies do we have? (115)
+# How many companies do we have? (95)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
-# any info
+# any info (deregistered or acquired by other companies and therefore no info)
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
 # Convert stock information into a data frame
@@ -126,15 +126,16 @@ stocks =
   stocks %>% 
   select(Company,ticker,"date"=ref.date,av.price)
 
-# Remove unneccessary objects from environment
-rm(list = c("all.firms","all.stocks","delisted.firms","all.tickers","url","url2","i"))
+
 
 
 
 # NEWS ARTICLE RETRIEVAL 
 
 # Extract URLs and dates for each article
-html <- read_html("2016-Q1.html")  # HTML code from DN
+articles <- 1:20
+html <- read_html("Q1.2014.html")  # HTML code from DN
+articles <- 1:200
 articles <- 1
 URLs <- list()
 Dates <- list()
@@ -153,6 +154,12 @@ for (article in articles) {
 # Are there duplicate urls?
 nrow(url.list)==nrow(unique(url.list))
 
+# It's including more links than articles (will look more into this)
+grep("https://www.dn.no/marked/notis", URLs)
+
+URLs <- URLs[-c(1015, 1016, 4709, 4728, 5812, 6029, 6077)]
+
+
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
 url <- "https://www.dn.no/auth/login"
@@ -170,16 +177,19 @@ text <- list()
 for (url in URLs) {
   jump <- session %>% 
     session_jump_to(url)  # Jump to each URL logged in
+  if(RCurl::url.exists(url)==TRUE){
   html <- read_html(jump) %>% 
     html_nodes("article") %>% 
     html_nodes("section") %>% 
     html_nodes("p")
   text <- rbind(text, toString(html))
+  }
 }
 
-save(text, file = "text.RData")
+# save(text, file = "text.RData")
 
-load("text.RData")
+# load("text.RData")
+
 
 # Remove HTML code and everything but letters
 text <- text %>%  
@@ -290,5 +300,3 @@ stopwords(language = "no")
 #save(LM.norsk, file = "LMNorsk.RData")
 
 load("LMNorsk.RData")
-
-
