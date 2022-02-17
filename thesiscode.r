@@ -12,6 +12,7 @@ library(translateR)
 library(stopwords)
 library(lubridate)
 library(RCurl)
+library(dplyr)
 
 
 # STOCK PRICE RETRIEVAL
@@ -196,41 +197,34 @@ for (url in url.list) {
 
 load("text.RData")
 
-# Make a data frame with dates, URLs and text from each article
-text = as.data.frame(text)
-
-text$date = as.Date(date.list, "%d.%m.%Y")
-
-text$url = url.list
-
-colnames(text) <- text
-
-# Check for duplicated text
-which(duplicated(text))
-
-date.list[!duplicated(text)]
-
-text %>% distinct(text .keep_all = TRUE)
-
-# Remove HTML code and everything but letters
-text <- text %>%  
+# Remove HTML code and everything but letters (not completely finished)
+text <- text %>% 
+  str_remove_all("class.*?\\n") %>%
   str_remove_all("<span.*?p>") %>% 
-  str_replace_all("<p", "") %>% 
-  str_replace_all("</p>", "") %>% 
-  str_remove_all("<a.*?>") %>%
-  str_replace_all("\n", "") %>% 
-  str_replace_all("[^[[:alpha:]][[:space:]]]", "") %>% 
-  str_remove("classcarouselitemtxt carouseljobbsearchnarrowitemtxt                                a") %>% 
-  str_remove("classarticleauthorname") %>% 
-  str_remove("span classarticleauthorseparatorogspan                        TDN Direkta")
-
-
+  str_remove_all("<a.*?>") %>% 
+  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>% 
+  str_remove_all("<aside.*?<\\aside") %>% 
+  str_replace_all("<p", " ") %>% 
+  str_replace_all("</p>", " ") %>% 
+  str_replace_all("\n", " ") %>% 
+  str_replace_all("[^[[:alpha:]][[:space:]]]", " ") 
+  
 # Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
 
 text$date = as.Date(date.list, "%d.%m.%Y")
 
 text$url = url.list
+
+names(text)[1] <- "text"
+
+# Remove duplicated text
+which(duplicated(text$text))
+
+text <- text[!duplicated(text$text), ]
+
+
+
 
 
 
