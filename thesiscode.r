@@ -154,6 +154,8 @@ for (file in files) {
 # Are there duplicate urls?
 nrow((distinct(as.data.frame(url.list))))
 
+which(duplicated(url.list) == TRUE)
+
 # Removing wrong/not working URLs)
 grep("notis", url.list)
 grep("https://www.dn.no/marked/2-1-", url.list)
@@ -162,13 +164,9 @@ grep("https://www.dn.no/personvern/handel/slar-alarm-om-personvern/1-1-5397744",
 grep("https://www.dn.no/borsbarna/finans/mener-aksjer-larer-ungene-om-frykt-og-gradighet/1-1-5331779", url.list)
 grep("https://www.dn.no/dagligvare/handel/coop-vil-selge-103-butikker/1-1-5308961", url.list)
 
-url.list <- gsub(url.list[500], "https://www.dn.no/marked/dnb-markets/dnb/resultater/knallsterk-debut-for-dnb-markets-sjefen/2-1-693531", url.list) 
-url.list <- gsub(url.list[5290], "https://www.dn.no/borskommentar/oslo-bors/iag/bjorn-kjos/iagame-over/2-1-339833", url.list) 
-url.list <- gsub(url.list[6077], "https://www.dn.no/makrookonomi/harald-magnus-andreassen/bors/sjefokonom-vi-er-i-den-siste-fasen/2-1-278372", url.list)
+url.list <- url.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5812, 6029, 6042, 6077, 7125, 10823, 15118, 15802, 16111)]
 
-url.list <- url.list[-c(1015, 1016, 4709, 4728, 4819, 5551, 5655, 5812, 6029, 6042, 7125, 10823, 15118, 15802, 16111)]
-
-date.list <- date.list[-c(1015, 1016, 4709, 4728, 4819, 5551, 5655, 5812, 6029, 6042, 7125, 10823, 15118, 15802, 16111)]
+date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5812, 6029, 6042, 6077, 7125, 10823, 15118, 15802, 16111)]
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
@@ -194,13 +192,25 @@ for (url in url.list) {
   text <- rbind(text, toString(html))
 }
 
-save(text, file = "text.RData")
+# save(text, file = "text.RData")
 
-# load("text.RData")
+load("text.RData")
 
-nrow((distinct(as.data.frame(text))))
+# Make a data frame with dates, URLs and text from each article
+text = as.data.frame(text)
 
-unique(text[duplicated(text)])
+text$date = as.Date(date.list, "%d.%m.%Y")
+
+text$url = url.list
+
+colnames(text) <- text
+
+# Check for duplicated text
+which(duplicated(text))
+
+date.list[!duplicated(text)]
+
+text %>% distinct(text .keep_all = TRUE)
 
 # Remove HTML code and everything but letters
 text <- text %>%  
@@ -218,9 +228,9 @@ text <- text %>%
 # Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
 
-text$date = as.Date(url.list$Dates, "%d.%m.%Y")
+text$date = as.Date(date.list, "%d.%m.%Y")
 
-text$url = url.list$URLs
+text$url = url.list
 
 
 
