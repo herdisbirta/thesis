@@ -199,15 +199,15 @@ load("text.RData")
 
 # Remove HTML code and everything but letters (not completely finished)
 text <- text %>% 
-  str_remove_all("class.*?\\n") %>%
   str_remove_all("<span.*?p>") %>% 
   str_remove_all("<a.*?>") %>% 
-  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>% 
+  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>%
   str_remove_all("<aside.*?<\\aside") %>% 
-  str_replace_all("<p", " ") %>% 
-  str_replace_all("</p>", " ") %>% 
-  str_replace_all("\n", " ") %>% 
-  str_replace_all("[^[[:alpha:]][[:space:]]]", " ") 
+  str_remove_all("<p|</p>|\n|<a|a>|<b|b>|<i|i>") %>% 
+  str_remove_all("[^[[:alpha:]][[:space:]]]") %>% 
+  str_remove_all("class.*?intro") %>% 
+  str_remove_all("class.*?wrapper") %>% 
+  str_remove_all("class|article|author|name|span|separator")
   
 # Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
