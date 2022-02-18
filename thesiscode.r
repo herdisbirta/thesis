@@ -171,33 +171,33 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
-url <- "https://www.dn.no/auth/login"
-uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
-session <- session(url, user_agent(uastring))
-form <- html_form(session)[[1]]
-fill <- html_form_set(form, 
-                      username = "livewt@live.no",
-                      password = "masterthesis123")
-session_submit(session, fill, submit = NULL, config(referer = session$url))
+# url <- "https://www.dn.no/auth/login"
+# uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
+# session <- session(url, user_agent(uastring))
+# form <- html_form(session)[[1]]
+# fill <- html_form_set(form, 
+#                       username = "livewt@live.no",
+#                       password = "masterthesis123")
+# session_submit(session, fill, submit = NULL, config(referer = session$url))
 
 # Extract text from each article
-text <- list()
+# text <- list()
 
-for (url in url.list) {
-  jump <- session %>% 
-    session_jump_to(url)  # Jump to each URL logged in
-  html <- read_html(jump) %>% 
-    html_nodes("article") %>% 
-    html_nodes("section") %>% 
-    html_nodes("p")
-  text <- rbind(text, toString(html))
-}
+# for (url in url.list) {
+#   jump <- session %>% 
+#     session_jump_to(url)  # Jump to each URL logged in
+#   html <- read_html(jump) %>% 
+#     html_nodes("article") %>% 
+#     html_nodes("section") %>% 
+#     html_nodes("p")
+#   text <- rbind(text, toString(html))
+# }
 
 # save(text, file = "text.RData")
 
 load("text.RData")
 
-# Remove HTML code and everything but letters (not completely finished)
+# Remove HTML code and everything but letters
 text <- text %>% 
   str_remove_all("<span.*?p>") %>% 
   str_remove_all("<a.*?>") %>% 
@@ -206,10 +206,15 @@ text <- text %>%
   str_remove_all("<p|</p>|\n|<a|a>|<b|b>|<i|i>") %>% 
   str_remove_all("[^[[:alpha:]][[:space:]]]") %>% 
   str_remove_all("class.*?intro") %>% 
-  str_remove_all("class.*?wrapper") %>% 
-  str_remove_all("class|article|author|name|span|separator")
-  
-# Make a data frame with dates, URLs and text from each article
+  str_remove_all("infoboxcontent|classinfoboxcontent.*?aside") %>% 
+  str_remove_all("class|article|author|name|span|separator|strong|rel|div") %>% 
+  str_remove_all("Les også.*$") %>% 
+  str_remove_all("figure figure jsfigure.*?figcaptionfigure") %>% 
+  str_remove_all("Tapsanslagene.*?rentenem") %>% 
+  str_remove_all("figure") %>% 
+  str_remove_all("dnationblockwrapper")
+
+# Make a data frame with text, dates and URLs from each article
 text = as.data.frame(text)
 
 text$date = as.Date(date.list, "%d.%m.%Y")
