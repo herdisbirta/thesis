@@ -81,6 +81,10 @@ all.firms$Company =
   gsub("Scatec Solar","Scatec",.) %>% 
   gsub("Lerøy Seafood Group","Lerøy",.) %>% 
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
+  gsub("DNO International","DNO",.) %>% 
+  gsub("InterOil Exploration and Production","InterOil",.) %>% 
+  gsub("Group","",.) %>% 
+  gsub("Gruppen","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
   gsub(" ASA","",.)
@@ -105,7 +109,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               do.cache = FALSE
 )
 
-# How many companies do we have? (95)
+# How many companies do we have? (132)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
 # any info (deregistered or acquired by other companies and therefore no info)
@@ -128,7 +132,12 @@ stocks =
   select(Company,ticker,"date"=ref.date,av.price)
 
 
+save(stocks,file="stocks.Rdata")
 
+##############################################################################
+
+
+load("stocks.Rdata")
 
 
 # NEWS ARTICLE RETRIEVAL 
@@ -195,7 +204,7 @@ for (url in url.list) {
 
 # save(text, file = "text.RData")
 
-load("text.RData")
+# load("text.RData")
 
 # Remove HTML code and everything but letters (not completely finished)
 text <- text %>% 
@@ -224,14 +233,42 @@ which(duplicated(text$text))
 text <- text[!duplicated(text$text), ]
 
 
+save(text,file="text.Rdata")
+#############################################################
 
-
-
+load("stocks.Rdata")
+load("text.RData")
+text = as.data.frame(text)
 
 # CONNECT ARTICLES AND COMPANIES
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
+
+# 1. Which companies are never mentioned?
+
+comp.df = data.frame(companies,"mentioned" = 0)
+
+articles = as.character(text)
+
+for(i in 1:nrow(comp.df)){
+  comp.df$mentioned[i] = 
+    grep(comp.df$companies[i],articles)
+}
+
+
+
+# 2. Which articles have no companies mentioned?
+
+
+
+
+
+
+
+
+
+
 
 # Create a nice data frame for the results
 mycols = c("text","date","url",companies)
@@ -240,6 +277,93 @@ colnames(df) = mycols
 df$date = text$date
 df$text = text$text
 df$url = text$url
+
+# Test run - article 5 mentions at least one company (DNB)
+test = df[5,]
+
+c.test = companies[1:50]
+
+for(i in 1:length(c.test)){
+  for(j in 1:nrow(test)){
+    for(k in 4:ncol(test)){
+      test[j,k] = 
+    str_count(test$text[j],c.test[i])
+    }
+  }
+}
+
+for(j in 1:length(c.test)){
+  for(i in 1:nrow(test)){
+  ifelse(grep(c.test[j],test$text[i]),
+         assign(paste(c.test[j]),grep(c.test[j],test$text[i])),
+         assign(paste(NA),grep(c.test[j],test$text[i])))
+  }
+}
+
+
+for(i in 1:length(c.test)){
+  print(grep(c.test[i],df[5,]))
+}
+
+# Working here
+
+length(grep("DNB", df[5,]))
+
+companies.df = data.frame(companies,"mention"=as.numeric(0))
+
+for(i in 1:nrow(companies.df)){
+  for(j in 1:nrow(test)){
+    companies.df$mention[i] = 
+      companies.df$mention[i] + 
+      length(grep(companies.df$companies[i],test$text[j]))
+  }
+}
+
+for(i in 1:nrow(companies.df)){
+  companies.df$mention[i] = 
+    companies.df$mention[i] + 
+    str_count(companies.df$companies[i],test$text)
+}
+
+
+
+as.numeric(ifelse(grepl(companies.df$companies[i],test$text[j]),
+                      1,0))
+
+
+test$mention = NA
+
+for(i in 1:nrow(test)){
+  for(j in 1:length(companies)){
+    test$mention = as.numeric(str_detect(test$text[i],companies[j]))
+  }
+}
+
+
+
+
+
+for(i in 1:nrow(test)){
+  for(j in companies){
+    for(k in 4:ncol(test)){
+    test[i,k] =  
+      as.numeric(str_detect(test$text[i],companies[j]))
+  }
+  }
+}
+  
+
+
+for(i in 1:nrow(test)){
+  for(j in companies){
+    for(k in 4:ncol(test)){
+      df[i,k] = ifelse(str_detect(test$text[i],companies[j]),1,0)
+    }
+  }
+}
+
+
+
 
 
 # An idea I had was to try to find out which companies are mentioned and which are
@@ -272,8 +396,17 @@ for(i in 1:nrow(dnb.df)){
   }
 }
 
+dnb = c("DNB")
+for(i in 1:nrow(dnb.df)){
+  for(j in 1:length(dnb)){
+    for(k in 4:ncol(dnb.df)){
+      dnb.df[i,k] = 
+        as.numeric(str_detect(dnb.df$text[i],dnb[j]))
+    }
+  }
+}
 
-
+x1_dummy <- as.numeric(x1)
 
 # Previous attempt below
 
