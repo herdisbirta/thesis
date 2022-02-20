@@ -83,8 +83,9 @@ all.firms$Company =
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
   gsub("DNO International","DNO",.) %>% 
   gsub("InterOil Exploration and Production","InterOil",.) %>% 
-  gsub("Group","",.) %>% 
-  gsub("Gruppen","",.) %>% 
+  gsub("Orkla Group","Orkla",.) %>% 
+  gsub(" ser A","",.) %>% 
+  gsub(" ser B","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
   gsub(" ASA","",.)
@@ -234,8 +235,11 @@ text <- text[!duplicated(text$text), ]
 
 
 save(text,file="text.Rdata")
-#############################################################
+################################################################################
 
+# Start here 
+
+rm(list = ls())
 load("stocks.Rdata")
 load("text.RData")
 text = as.data.frame(text)
@@ -245,20 +249,55 @@ text = as.data.frame(text)
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
 
-# 1. Which companies are never mentioned?
 
+# 1. Which companies are never mentioned?
+# Create data frame with "companies" column and "mentioned" column
 comp.df = data.frame(companies,"mentioned" = 0)
 
+# Create string with text from all articles (easier to search in than in each row)
 articles = as.character(text)
 
+# Loop: for i in each row of comp.df, assign 1 to the "mentioned" column if a
+# company name is found in the "articles" string and 0 if not
 for(i in 1:nrow(comp.df)){
   comp.df$mentioned[i] = 
-    grep(comp.df$companies[i],articles)
+    ifelse(str_detect(string = articles,
+                      pattern = comp.df$companies[i])==TRUE,
+           1,NA)    # If company i is not detected in the "articles" string ,
 }
 
+# Remove companies that are never mentioned from the "companies" list
+comp.df.new = na.omit(comp.df)
 
+# Create new list with company names that are mentioned
+companies = comp.df.new$companies
 
 # 2. Which articles have no companies mentioned?
+# Create column that will count how many companies are mentioned in each article
+text$mentions = 0    # Always run this line before loop so it doesn't double-count
+
+# Loop: for each row in text and each element in companies, add 1 to 
+# "mentions" column for each company name that is found in the article
+for(i in 1:nrow(text)){
+  for(j in 1:length(companies)){
+  text$mentions[i] = 0
+  text$mentions[i] = 
+    text$mentions[i] + ifelse(str_detect(string = text$V1[i],
+                                      pattern = companies[j])==TRUE,
+                           1,0)
+  }
+  # Remove articles with no company mentions
+ text$mentions[i] = ifelse(text$mentions[i] == 0,NA,text$mentions[i])
+ text2 = na.omit(text)
+}
+
+# Tested results by looking at articles 3 (1 mention) and 5 (2 mentions),
+# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5,
+
+
+# 3. "Assign" articles to a company
+# (if an article mentions DNB once and Storebrand once (article 5), it probably
+# shouldn't be assigned to either one)
 
 
 
@@ -266,9 +305,7 @@ for(i in 1:nrow(comp.df)){
 
 
 
-
-
-
+# Previous attempts below - would like to keep them until I figure this out 100%
 
 # Create a nice data frame for the results
 mycols = c("text","date","url",companies)
@@ -305,7 +342,7 @@ for(i in 1:length(c.test)){
   print(grep(c.test[i],df[5,]))
 }
 
-# Working here
+# Test for DNB in article 5
 
 length(grep("DNB", df[5,]))
 
@@ -366,7 +403,7 @@ for(i in 1:nrow(test)){
 
 
 
-# An idea I had was to try to find out which companies are mentioned and which are
+# Try to find out which companies are mentioned and which are
 # not, so we can exclude the companies that aren't mentioned at all and then search
 # for how many times the remaining companies are mentioned (maybe easier to work with
 # fewer companies), this doesn't work yet for some reason but DNB example below works
@@ -406,9 +443,6 @@ for(i in 1:nrow(dnb.df)){
   }
 }
 
-x1_dummy <- as.numeric(x1)
-
-# Previous attempt below
 
 
 
