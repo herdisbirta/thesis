@@ -249,13 +249,12 @@ text = as.data.frame(text)
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
 
-
 # 1. Which companies are never mentioned?
 # Create data frame with "companies" column and "mentioned" column
 comp.df = data.frame(companies,"mentioned" = 0)
 
 # Create string with text from all articles (easier to search in than in each row)
-articles = as.character(text)
+articles = as.character(text)   # Takes a minute or two
 
 # Loop: for i in each row of comp.df, assign 1 to the "mentioned" column if a
 # company name is found in the "articles" string and 0 if not
@@ -274,13 +273,12 @@ companies = comp.df.new$companies
 
 # 2. Which articles have no companies mentioned?
 # Create column that will count how many companies are mentioned in each article
-text$mentions = 0    # Always run this line before loop so it doesn't double-count
+text$mentions = 0    # Always run this line before running loop so it doesn't double-count
 
 # Loop: for each row in text and each element in companies, add 1 to 
 # "mentions" column for each company name that is found in the article
 for(i in 1:nrow(text)){
   for(j in 1:length(companies)){
-  text$mentions[i] = 0
   text$mentions[i] = 
     text$mentions[i] + ifelse(str_detect(string = text$V1[i],
                                       pattern = companies[j])==TRUE,
@@ -291,9 +289,10 @@ for(i in 1:nrow(text)){
  text2 = na.omit(text)
 }
 
-# Tested results by looking at articles 3 (1 mention) and 5 (2 mentions),
-# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5,
-
+# Tested results by looking at articles 1 (1 mention) and 2 (2 mentions),
+# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5
+text2[1,]
+text2[2,]
 
 # 3. "Assign" articles to a company
 # (if an article mentions DNB once and Storebrand once (article 5), it probably
