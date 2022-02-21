@@ -242,7 +242,6 @@ save(text,file="text.Rdata")
 rm(list = ls())
 load("stocks.Rdata")
 load("text.RData")
-text = as.data.frame(text)
 
 # CONNECT ARTICLES AND COMPANIES
 
@@ -254,7 +253,7 @@ companies = unique(stocks$Company)
 comp.df = data.frame(companies,"mentioned" = 0)
 
 # Create string with text from all articles (easier to search in than in each row)
-articles = as.character(text)   # Takes a minute or two
+articles = toString(text$text)   # Takes a minute or two
 
 # Loop: for i in each row of comp.df, assign 1 to the "mentioned" column if a
 # company name is found in the "articles" string and 0 if not
@@ -271,6 +270,7 @@ comp.df.new = na.omit(comp.df)
 # Create new list with company names that are mentioned
 companies = comp.df.new$companies
 
+
 # 2. Which articles have no companies mentioned?
 # Create column that will count how many companies are mentioned in each article
 text$mentions = 0    # Always run this line before running loop so it doesn't double-count
@@ -280,7 +280,7 @@ text$mentions = 0    # Always run this line before running loop so it doesn't do
 for(i in 1:nrow(text)){
   for(j in 1:length(companies)){
   text$mentions[i] = 
-    text$mentions[i] + ifelse(str_detect(string = text$V1[i],
+    text$mentions[i] + ifelse(str_detect(string = text$text[i],
                                       pattern = companies[j])==TRUE,
                            1,0)
   }
