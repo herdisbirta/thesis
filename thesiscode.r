@@ -321,6 +321,12 @@ stopwords(language = "no")
 
 load("LMNorsk.RData")
 
+# Sum negative/positive words
+
+sum(LM.norsk$y == 1)  # Number of positive words
+
+sum(LM.norsk$y == -1) # Number of negative words
+
 # Remove duplicates and more than one word translations
 nrow((distinct(as.data.frame(LM.norsk$translatedContent))))
 
@@ -331,4 +337,5 @@ LM.norsk <- LM.norsk[!duplicated(LM.norsk$translatedContent), ]
 which(sapply(strsplit(LM.norsk$translatedContent, " "), length)>1)
 
 LM.norsk <- LM.norsk[!sapply(strsplit(LM.norsk$translatedContent, " "), length)>1, ]
+
 
