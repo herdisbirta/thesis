@@ -320,3 +320,10 @@ stopwords(language = "no")
 #save(LM.norsk, file = "LMNorsk.RData")
 
 load("LMNorsk.RData")
+
+# Find duplicates and more than one word translations
+nrow((distinct(as.data.frame(LM.norsk$translatedContent))))
+
+which(duplicated(LM.norsk$translatedContent))
+
+which(sapply(strsplit(LM.norsk$translatedContent, " "), length)>1)
