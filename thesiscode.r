@@ -321,9 +321,14 @@ stopwords(language = "no")
 
 load("LMNorsk.RData")
 
-# Find duplicates and more than one word translations
+# Remove duplicates and more than one word translations
 nrow((distinct(as.data.frame(LM.norsk$translatedContent))))
 
 which(duplicated(LM.norsk$translatedContent))
 
+LM.norsk <- LM.norsk[!duplicated(LM.norsk$translatedContent), ]
+
 which(sapply(strsplit(LM.norsk$translatedContent, " "), length)>1)
+
+LM.norsk <- LM.norsk[!sapply(strsplit(LM.norsk$translatedContent, " "), length)>1, ]
+
