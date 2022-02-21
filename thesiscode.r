@@ -81,6 +81,11 @@ all.firms$Company =
   gsub("Scatec Solar","Scatec",.) %>% 
   gsub("Lerøy Seafood Group","Lerøy",.) %>% 
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
+  gsub("DNO International","DNO",.) %>% 
+  gsub("InterOil Exploration and Production","InterOil",.) %>% 
+  gsub("Orkla Group","Orkla",.) %>% 
+  gsub(" ser A","",.) %>% 
+  gsub(" ser B","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
   gsub(" ASA","",.)
@@ -105,7 +110,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               do.cache = FALSE
 )
 
-# How many companies do we have? (95)
+# How many companies do we have? (132)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
 # any info (deregistered or acquired by other companies and therefore no info)
@@ -128,7 +133,12 @@ stocks =
   select(Company,ticker,"date"=ref.date,av.price)
 
 
+save(stocks,file="stocks.Rdata")
 
+##############################################################################
+
+
+load("stocks.Rdata")
 
 
 # NEWS ARTICLE RETRIEVAL 
@@ -195,7 +205,7 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # save(text, file = "text.RData")
 
-load("text.RData")
+# load("text.RData")
 
 # Remove HTML code and everything but letters
 text <- text %>% 
@@ -229,14 +239,77 @@ which(duplicated(text$text))
 text <- text[!duplicated(text$text), ]
 
 
+save(text,file="text.Rdata")
+################################################################################
 
+# Start here 
 
-
+rm(list = ls())
+load("stocks.Rdata")
+load("text.RData")
+text = as.data.frame(text)
 
 # CONNECT ARTICLES AND COMPANIES
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
+
+# 1. Which companies are never mentioned?
+# Create data frame with "companies" column and "mentioned" column
+comp.df = data.frame(companies,"mentioned" = 0)
+
+# Create string with text from all articles (easier to search in than in each row)
+articles = as.character(text)   # Takes a minute or two
+
+# Loop: for i in each row of comp.df, assign 1 to the "mentioned" column if a
+# company name is found in the "articles" string and 0 if not
+for(i in 1:nrow(comp.df)){
+  comp.df$mentioned[i] = 
+    ifelse(str_detect(string = articles,
+                      pattern = comp.df$companies[i])==TRUE,
+           1,NA)    # If company i is not detected in the "articles" string ,
+}
+
+# Remove companies that are never mentioned from the "companies" list
+comp.df.new = na.omit(comp.df)
+
+# Create new list with company names that are mentioned
+companies = comp.df.new$companies
+
+# 2. Which articles have no companies mentioned?
+# Create column that will count how many companies are mentioned in each article
+text$mentions = 0    # Always run this line before running loop so it doesn't double-count
+
+# Loop: for each row in text and each element in companies, add 1 to 
+# "mentions" column for each company name that is found in the article
+for(i in 1:nrow(text)){
+  for(j in 1:length(companies)){
+  text$mentions[i] = 
+    text$mentions[i] + ifelse(str_detect(string = text$V1[i],
+                                      pattern = companies[j])==TRUE,
+                           1,0)
+  }
+  # Remove articles with no company mentions
+ text$mentions[i] = ifelse(text$mentions[i] == 0,NA,text$mentions[i])
+ text2 = na.omit(text)
+}
+
+# Tested results by looking at articles 1 (1 mention) and 2 (2 mentions),
+# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5
+text2[1,]
+text2[2,]
+
+# 3. "Assign" articles to a company
+# (if an article mentions DNB once and Storebrand once (article 5), it probably
+# shouldn't be assigned to either one)
+
+
+
+
+
+
+
+# Previous attempts below - would like to keep them until I figure this out 100%
 
 # Create a nice data frame for the results
 mycols = c("text","date","url",companies)
@@ -246,8 +319,95 @@ df$date = text$date
 df$text = text$text
 df$url = text$url
 
+# Test run - article 5 mentions at least one company (DNB)
+test = df[5,]
 
-# An idea I had was to try to find out which companies are mentioned and which are
+c.test = companies[1:50]
+
+for(i in 1:length(c.test)){
+  for(j in 1:nrow(test)){
+    for(k in 4:ncol(test)){
+      test[j,k] = 
+    str_count(test$text[j],c.test[i])
+    }
+  }
+}
+
+for(j in 1:length(c.test)){
+  for(i in 1:nrow(test)){
+  ifelse(grep(c.test[j],test$text[i]),
+         assign(paste(c.test[j]),grep(c.test[j],test$text[i])),
+         assign(paste(NA),grep(c.test[j],test$text[i])))
+  }
+}
+
+
+for(i in 1:length(c.test)){
+  print(grep(c.test[i],df[5,]))
+}
+
+# Test for DNB in article 5
+
+length(grep("DNB", df[5,]))
+
+companies.df = data.frame(companies,"mention"=as.numeric(0))
+
+for(i in 1:nrow(companies.df)){
+  for(j in 1:nrow(test)){
+    companies.df$mention[i] = 
+      companies.df$mention[i] + 
+      length(grep(companies.df$companies[i],test$text[j]))
+  }
+}
+
+for(i in 1:nrow(companies.df)){
+  companies.df$mention[i] = 
+    companies.df$mention[i] + 
+    str_count(companies.df$companies[i],test$text)
+}
+
+
+
+as.numeric(ifelse(grepl(companies.df$companies[i],test$text[j]),
+                      1,0))
+
+
+test$mention = NA
+
+for(i in 1:nrow(test)){
+  for(j in 1:length(companies)){
+    test$mention = as.numeric(str_detect(test$text[i],companies[j]))
+  }
+}
+
+
+
+
+
+for(i in 1:nrow(test)){
+  for(j in companies){
+    for(k in 4:ncol(test)){
+    test[i,k] =  
+      as.numeric(str_detect(test$text[i],companies[j]))
+  }
+  }
+}
+  
+
+
+for(i in 1:nrow(test)){
+  for(j in companies){
+    for(k in 4:ncol(test)){
+      df[i,k] = ifelse(str_detect(test$text[i],companies[j]),1,0)
+    }
+  }
+}
+
+
+
+
+
+# Try to find out which companies are mentioned and which are
 # not, so we can exclude the companies that aren't mentioned at all and then search
 # for how many times the remaining companies are mentioned (maybe easier to work with
 # fewer companies), this doesn't work yet for some reason but DNB example below works
@@ -277,10 +437,16 @@ for(i in 1:nrow(dnb.df)){
   }
 }
 
+dnb = c("DNB")
+for(i in 1:nrow(dnb.df)){
+  for(j in 1:length(dnb)){
+    for(k in 4:ncol(dnb.df)){
+      dnb.df[i,k] = 
+        as.numeric(str_detect(dnb.df$text[i],dnb[j]))
+    }
+  }
+}
 
-
-
-# Previous attempt below
 
 
 
