@@ -298,10 +298,18 @@ text2[2,]
 # (if an article mentions DNB once and Storebrand once (article 5), it probably
 # shouldn't be assigned to either one)
 
+text$company <- ""
 
-
-
-
+for (company in 1:length(companies)) {
+  for (t in 1:length(text$text)) {
+    if (grepl(companies[company], text[t,1], fixed = TRUE)) {
+      ct <- text[t,4]
+      text[t,4] <- paste(ct, companies[company])
+    } else {
+      # Company name not found in text
+    }
+  }
+}
 
 
 # Previous attempts below - would like to keep them until I figure this out 100%
