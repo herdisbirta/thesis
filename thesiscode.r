@@ -270,47 +270,35 @@ comp.df.new = na.omit(comp.df)
 # Create new list with company names that are mentioned
 companies = comp.df.new$companies
 
-
-# 2. Which articles have no companies mentioned?
-# Create column that will count how many companies are mentioned in each article
-text$mentions = 0    # Always run this line before running loop so it doesn't double-count
-
-# Loop: for each row in text and each element in companies, add 1 to 
-# "mentions" column for each company name that is found in the article
-for(i in 1:nrow(text)){
-  for(j in 1:length(companies)){
-  text$mentions[i] = 
-    text$mentions[i] + ifelse(str_detect(string = text$text[i],
-                                      pattern = companies[j])==TRUE,
-                           1,0)
-  }
-  # Remove articles with no company mentions
- text$mentions[i] = ifelse(text$mentions[i] == 0,NA,text$mentions[i])
- text2 = na.omit(text)
-}
-
-# Tested results by looking at articles 1 (1 mention) and 2 (2 mentions),
-# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5
-text2[1,]
-text2[2,]
-
-# 3. "Assign" articles to a company
-# (if an article mentions DNB once and Storebrand once (article 5), it probably
-# shouldn't be assigned to either one)
-
-text$company <- ""
+# New column in text data frame for company names
+text$Company <- ""
 
 for (company in 1:length(companies)) {
   for (t in 1:length(text$text)) {
     if (grepl(companies[company], text[t,1], fixed = TRUE)) {
+      m <- gregexpr(companies[company], text[t,1])
       ct <- text[t,4]
-      text[t,4] <- paste(ct, companies[company])
-    } else {
-      # Company name not found in text
+      name <- toString(regmatches(text[t,1], m)[[1]])
+      text[t,4] <- paste(ct, name, sep = ", ")
     }
   }
 }
 
+text <- text[!text$Company=="",] # Remove rows with no company names
+
+text[stri_(text$Company)==T,]
+
+save(text, file = "text3.RData")
+
+load("text3.RData")
+
+for (i in 1:length(text)) {
+  c <- text[i,4]
+  text <- text[distinct(c)==T,]
+}
+
+!duplicated(text$Company)
+df <- merge(text, stocks, by=c("date","Company")) # Merge text and stocks df's
 
 # Previous attempts below - would like to keep them until I figure this out 100%
 
