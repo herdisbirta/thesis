@@ -281,20 +281,6 @@ comp.df.new = na.omit(comp.df)
 # Create new list with company names that are mentioned
 companies = comp.df.new$companies
 
-# New column in text data frame for company names
-text$Company <- ""
-
-for (company in 1:length(companies)) {
-  for (t in 1:length(text$text)) {
-    if (grepl(companies[company], text[t,1], fixed = TRUE)) {
-      m <- gregexpr(companies[company], text[t,1])
-      ct <- text[t,4]
-      name <- toString(regmatches(text[t,1], m)[[1]])
-      text[t,4] <- paste(ct, name, sep = ", ")
-    }
-  }
-}
-
 # 2. Which articles have no companies mentioned?
 # Create column that will count how many companies are mentioned in each article
 text$mentions = 0    # Always run this line before running loop so it doesn't double-count
@@ -322,33 +308,24 @@ text2[2,]
 # (if an article mentions DNB once and Storebrand once (article 5), it probably
 # shouldn't be assigned to either one)
 
-text2$company <- ""
+# New column in text data frame for company names
+text$Company <- ""
 
+# Loop to paste company names into new Company column
 for (company in 1:length(companies)) {
-  for (t in 1:length(text2$text)) {
-    if (grepl(companies[company], text2[t,1], fixed = TRUE)) {
-      ct <- text2[t,4]
-      text2[t,4] <- paste(ct, companies[company])
-    } else {
-      # Company name not found in text
+  for (t in 1:length(text$text)) {
+    if (grepl(companies[company], text[t,1], fixed = TRUE)) {
+      m <- gregexpr(companies[company], text[t,1])
+      ct <- text[t,4]
+      name <- toString(regmatches(text[t,1], m)[[1]])
+      text[t,4] <- paste(ct, name, sep = ", ")
     }
   }
 }
 
+
 text <- text[!text$Company=="",] # Remove rows with no company names
 
-text[stri_(text$Company)==T,]
-
-save(text, file = "text3.RData")
-
-load("text3.RData")
-
-for (i in 1:length(text)) {
-  c <- text[i,4]
-  text <- text[distinct(c)==T,]
-}
-
-!duplicated(text$Company)
 df <- merge(text, stocks, by=c("date","Company")) # Merge text and stocks df's
 
 
