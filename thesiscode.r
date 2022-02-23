@@ -18,8 +18,7 @@ library(dplyr)
 # STOCK PRICE RETRIEVAL
 
 # List of ALL listed companies
-url <- "https://en.wikipedia.org/wiki/List_of_companies_listed_on_the_Oslo_Stock_Exchange"
-all.firms <- as.data.frame(read_html(url) %>% 
+all.firms <- as.data.frame(read_html("https://en.wikipedia.org/wiki/List_of_companies_listed_on_the_Oslo_Stock_Exchange") %>% 
                              html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
                              html_table()) #retrieve table
 
@@ -33,16 +32,17 @@ all.firms =
   filter(First.day.of.listing <= "2019-12-31")
 
 # Were any companies delisted?
-url2 = "https://en.wikipedia.org/wiki/List_of_companies_delisted_from_Oslo_Stock_Exchange"
-delisted.firms = as.data.frame(read_html(url2) %>% 
+delisted.firms = as.data.frame(read_html("https://en.wikipedia.org/wiki/List_of_companies_delisted_from_Oslo_Stock_Exchange") %>% 
                                  html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
                                  html_table()) #retrieve table
 
 
 inner_join(all.firms,delisted.firms,by = "Company")
 
-# Seems like only Elkem was delisted in or after 2005, the code will automatically 
-# exclude it since the stock price info will not be available after delisting
+# Seems like only Elkem was delisted in or after 2005
+all.firms = 
+  all.firms %>% 
+  filter(Company != "Elkem")
 
 # Get tickers
 
@@ -81,14 +81,27 @@ all.firms$Company =
   gsub("Scatec Solar","Scatec",.) %>% 
   gsub("Lerøy Seafood Group","Lerøy",.) %>% 
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
-  gsub("DNO International","DNO",.) %>% 
   gsub("InterOil Exploration and Production","InterOil",.) %>% 
   gsub("Orkla Group","Orkla",.) %>% 
-  gsub(" ser A","",.) %>% 
-  gsub(" ser B","",.) %>% 
+  gsub(" International","",.) %>% 
+  gsub(" Ltd","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
   gsub(" ASA","",.)
+
+# Remove company names that sound too similar (searching for "Aker" will give
+# results of "Aker BP" and "Aker Solutions" for example, "Wilh Wilhelmsen Holding"
+# has both "ser A" and "ser B")
+
+all.firms = 
+  all.firms[all.firms$Company != "Aker",]
+
+all.firms = 
+  all.firms %>% 
+  subset(Company != "Aker" & Company != "Odfjell ser A" &
+         Company != "Odfjell ser B" & Company != "Schibsted ser A" & 
+         Company != "Schibsted ser B" & Company != "Wilh Wilhelmsen Holding ser A" &
+         Company != "Wilh Wilhelmsen Holding ser B")
 
 # Edit ticker to be on the format "TICKER.OL"
 all.firms$ticker = paste0((gsub("OSE: ","",all.firms$Ticker)),".OL")
@@ -110,7 +123,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               do.cache = FALSE
 )
 
-# How many companies do we have? (132)
+# How many companies do we have? (126)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
 # any info (deregistered or acquired by other companies and therefore no info)
@@ -132,13 +145,9 @@ stocks =
   stocks %>% 
   select(Company,ticker,"date"=ref.date,av.price)
 
-
 save(stocks,file="stocks.Rdata")
 
 ##############################################################################
-
-
-load("stocks.Rdata")
 
 
 # NEWS ARTICLE RETRIEVAL 
@@ -234,19 +243,21 @@ which(duplicated(text$text))
 text <- text[!duplicated(text$text), ]
 
 
-save(text,file="text.Rdata")
+
 ################################################################################
 
 # Start here 
-
 rm(list = ls())
+load("text.Rdata")
 load("stocks.Rdata")
-load("text.RData")
 
 # CONNECT ARTICLES AND COMPANIES
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
+
+# Add Statoil to companies
+companies = c(companies,"Statoil")
 
 # 1. Which companies are never mentioned?
 # Create data frame with "companies" column and "mentioned" column
@@ -290,7 +301,7 @@ for(i in 1:nrow(text)){
 }
 
 # Tested results by looking at articles 1 (1 mention) and 2 (2 mentions),
-# could find a mention of Veidekke in article 3 and DNB+Storebrand in article 5
+# could find a mention of Veidekke in article 1 and DNB+Storebrand in article 2
 text2[1,]
 text2[2,]
 
@@ -298,18 +309,20 @@ text2[2,]
 # (if an article mentions DNB once and Storebrand once (article 5), it probably
 # shouldn't be assigned to either one)
 
-text$company <- ""
+text2$company <- ""
 
 for (company in 1:length(companies)) {
-  for (t in 1:length(text$text)) {
-    if (grepl(companies[company], text[t,1], fixed = TRUE)) {
-      ct <- text[t,4]
-      text[t,4] <- paste(ct, companies[company])
+  for (t in 1:length(text2$text)) {
+    if (grepl(companies[company], text2[t,1], fixed = TRUE)) {
+      ct <- text2[t,4]
+      text2[t,4] <- paste(ct, companies[company])
     } else {
       # Company name not found in text
     }
   }
 }
+
+
 
 
 # Previous attempts below - would like to keep them until I figure this out 100%
