@@ -281,33 +281,6 @@ comp.df.new = na.omit(comp.df)
 # Create new list with company names that are mentioned
 companies = comp.df.new$companies
 
-# 2. Which articles have no companies mentioned?
-# Create column that will count how many companies are mentioned in each article
-text$mentions = 0    # Always run this line before running loop so it doesn't double-count
-
-# Loop: for each row in text and each element in companies, add 1 to 
-# "mentions" column for each company name that is found in the article
-for(i in 1:nrow(text)){
-  for(j in 1:length(companies)){
-  text$mentions[i] = 
-    text$mentions[i] + ifelse(str_detect(string = text$text[i],
-                                      pattern = companies[j])==TRUE,
-                           1,0)
-  }
-  # Remove articles with no company mentions
- text$mentions[i] = ifelse(text$mentions[i] == 0,NA,text$mentions[i])
- text2 = na.omit(text)
-}
-
-# Tested results by looking at articles 1 (1 mention) and 2 (2 mentions),
-# could find a mention of Veidekke in article 1 and DNB+Storebrand in article 2
-text2[1,]
-text2[2,]
-
-# 3. "Assign" articles to a company
-# (if an article mentions DNB once and Storebrand once (article 5), it probably
-# shouldn't be assigned to either one)
-
 # New column in text data frame for company names
 text$Company <- ""
 
@@ -318,180 +291,51 @@ for (company in 1:length(companies)) {
       m <- gregexpr(companies[company], text[t,1])
       ct <- text[t,4]
       name <- toString(regmatches(text[t,1], m)[[1]])
+      name <- gsub(" ", "-", name)
       text[t,4] <- paste(ct, name, sep = ", ")
     }
   }
 }
 
-
 text <- text[!text$Company=="",] # Remove rows with no company names
+
+# Loop to remove company names that only get mentioned once per article
+for (t in 1:length(text$Company)) {
+  for (c in companies) {
+    if (str_count(text[t,4], c) <= 1) {
+      text[t,4] <- gsub(c, "", text[t,4])
+    }
+  }
+}
+
+# Remove rows where only companies were mentioned once and commas
+text$Company <- str_replace_all(text$Company, ",", " ")
+
+text$Company <- gsub("^[[:space:]]+$", NA, text$Company)
+
+text <- text[!(is.na(text$Company)),]
+
+# Loop to choose the most mentioned company for each article
+for (t in 1:length(text$Company)) {
+  for (c in companies) {
+    words <- strsplit(text[t,4], "[[:space:]]+")[[1]]
+    most <- tail(sort(words), 1)
+    text[t,4] <- text[t,4] %>% gsub(text[t,4], "", text[t,4]) %>% 
+      gsub("", most, text[t,4])
+  }
+}
+
+text$Company <- gsub("-", " ", text$Company)
 
 df <- merge(text, stocks, by=c("date","Company")) # Merge text and stocks df's
 
-
-
-# Previous attempts below - would like to keep them until I figure this out 100%
-
-# Create a nice data frame for the results
-mycols = c("text","date","url",companies)
-df = data.frame(matrix(ncol = length(mycols),nrow = nrow(text)))
-colnames(df) = mycols
-df$date = text$date
-df$text = text$text
-df$url = text$url
-
-# Test run - article 5 mentions at least one company (DNB)
-test = df[5,]
-
-c.test = companies[1:50]
-
-for(i in 1:length(c.test)){
-  for(j in 1:nrow(test)){
-    for(k in 4:ncol(test)){
-      test[j,k] = 
-    str_count(test$text[j],c.test[i])
-    }
-  }
-}
-
-for(j in 1:length(c.test)){
-  for(i in 1:nrow(test)){
-  ifelse(grep(c.test[j],test$text[i]),
-         assign(paste(c.test[j]),grep(c.test[j],test$text[i])),
-         assign(paste(NA),grep(c.test[j],test$text[i])))
-  }
-}
-
-
-for(i in 1:length(c.test)){
-  print(grep(c.test[i],df[5,]))
-}
-
-# Test for DNB in article 5
-
-length(grep("DNB", df[5,]))
-
-companies.df = data.frame(companies,"mention"=as.numeric(0))
-
-for(i in 1:nrow(companies.df)){
-  for(j in 1:nrow(test)){
-    companies.df$mention[i] = 
-      companies.df$mention[i] + 
-      length(grep(companies.df$companies[i],test$text[j]))
-  }
-}
-
-for(i in 1:nrow(companies.df)){
-  companies.df$mention[i] = 
-    companies.df$mention[i] + 
-    str_count(companies.df$companies[i],test$text)
-}
-
-
-
-as.numeric(ifelse(grepl(companies.df$companies[i],test$text[j]),
-                      1,0))
-
-
-test$mention = NA
-
-for(i in 1:nrow(test)){
-  for(j in 1:length(companies)){
-    test$mention = as.numeric(str_detect(test$text[i],companies[j]))
-  }
-}
-
-
-
-
-
-for(i in 1:nrow(test)){
-  for(j in companies){
-    for(k in 4:ncol(test)){
-    test[i,k] =  
-      as.numeric(str_detect(test$text[i],companies[j]))
-  }
-  }
-}
-  
-
-
-for(i in 1:nrow(test)){
-  for(j in companies){
-    for(k in 4:ncol(test)){
-      df[i,k] = ifelse(str_detect(test$text[i],companies[j]),1,0)
-    }
-  }
-}
-
-
-
-
-
-# Try to find out which companies are mentioned and which are
-# not, so we can exclude the companies that aren't mentioned at all and then search
-# for how many times the remaining companies are mentioned (maybe easier to work with
-# fewer companies), this doesn't work yet for some reason but DNB example below works
-for(i in 1:nrow(df)){
-  for(j in 1:length(companies)){
-    for(k in 4:ncol(df)){
-      df[i,k] = ifelse(str_detect(df$text[i],companies[j]),1,0)
-    }
-  }
-}
-
-
-# DNB test (same concept as above but only for DNB)
-dnbcols = c("text","date","url","DNB")
-dnb.df = data.frame(matrix(ncol = length(dnbcols),nrow = nrow(text)))
-colnames(dnb.df) = dnbcols
-dnb.df$date = text$date
-dnb.df$text = text$text
-dnb.df$url = text$url
-
-dnb = c("DNB")
-for(i in 1:nrow(dnb.df)){
-  for(j in 1:length(dnb)){
-    for(k in 4:ncol(dnb.df)){
-      dnb.df[i,k] = ifelse(str_detect(dnb.df$text[i],dnb[j]),1,0)
-    }
-  }
-}
-
-dnb = c("DNB")
-for(i in 1:nrow(dnb.df)){
-  for(j in 1:length(dnb)){
-    for(k in 4:ncol(dnb.df)){
-      dnb.df[i,k] = 
-        as.numeric(str_detect(dnb.df$text[i],dnb[j]))
-    }
-  }
-}
-
-
-
-
-# Which articles have company mentions?
-# Creates an object for each article that has a company mention
-# I know this works. Also if for example DNB and Equinor are both mentioned in
-# an article, it creates 2 objects for each company.
-for(i in 1:nrow(text)){
-  for(j in 1:length(companies)){
-    ifelse(str_detect(text$text[i],companies[j]),    # If the company name j is in article i
-           assign(paste(companies[j],text$date[i],sep="-"),text$text[i]),    # Yes: Create an object with the article
-           assign(paste("NA",companies[j],text$date[i],sep="-"),text$text[i]))    # No: Create an object with the article with NA in the front
-    rm(list = ls(pattern = "^NA"))    # Delete the NA objects
-  }
-} 
-
+###############################################################################
 
 # Code to retrieve stopwords with package "stopwords"
 stopwords(language = "no")
 
 
-
-
-
+###############################################################################
 
 
 # TRANSLATION OF LOUGHRAN AND MCDONALD DICTIONARY
