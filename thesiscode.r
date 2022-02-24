@@ -94,9 +94,6 @@ all.firms$Company =
 # has both "ser A" and "ser B")
 
 all.firms = 
-  all.firms[all.firms$Company != "Aker",]
-
-all.firms = 
   all.firms %>% 
   subset(Company != "Aker" & Company != "Odfjell ser A" &
          Company != "Odfjell ser B" & Company != "Schibsted ser A" & 
@@ -126,7 +123,8 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
 # How many companies do we have? (126)
 # We originally had 183 tickers for companies, some only had price info for
 # <75% of the time period (and was therefore skipped), some tickers didn't have
-# any info (deregistered or acquired by other companies and therefore no info)
+# any info (deregistered or acquired by other companies and therefore no info),
+# some we removed to make searching easier later)
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
 # Convert stock information into a data frame
@@ -136,7 +134,7 @@ stocks = all.stocks$df.tickers
 stocks = left_join(stocks,all.firms,by="ticker")
 
 # Calculate a daily price measure
-for(i in 1:length(stocks)){
+for(i in 1:nrow(stocks)){
   stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
 }
 
