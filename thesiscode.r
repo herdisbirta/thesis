@@ -297,8 +297,8 @@ for (company in 1:length(companies)) {
       m <- gregexpr(companies[company], text[t,1])
       ct <- text[t,4]
       name <- toString(regmatches(text[t,1], m)[[1]])
-      name <- gsub(" ", "-", name)
-      text[t,4] <- paste(ct, name, sep = ", ")
+      name <- str_replace_all(name, " ", "-") 
+      text[t,4] <- paste(ct, name)
     }
   }
 }
@@ -314,10 +314,12 @@ for (t in 1:length(text$Company)) {
   }
 }
 
-# Remove rows where only companies were mentioned once and commas
+# Remove rows where only companies were mentioned once, commas and spaces at the start of rows
 text$Company <- str_replace_all(text$Company, ",", " ")
 
-text$Company <- gsub("^[[:space:]]+$", NA, text$Company)
+text$Company <- text$Company %>% 
+  gsub("^[[:space:]]+$", NA, .) %>% 
+  gsub("^[[:space:]]+", "", .)
 
 text <- text[!(is.na(text$Company)),]
 
@@ -325,14 +327,16 @@ text <- text[!(is.na(text$Company)),]
 for (t in 1:length(text$Company)) {
   for (c in companies) {
     words <- strsplit(text[t,4], "[[:space:]]+")[[1]]
-    most <- tail(sort(words), 1)
+    most <- names(sort(table(words), decreasing = TRUE))[1]
     text[t,4] <- text[t,4] %>% gsub(text[t,4], "", text[t,4]) %>% 
       gsub("", most, text[t,4])
   }
 }
 
-# Replace - with spaces
-text$Company <- gsub("-", " ", text$Company) 
+# Replace - with spaces and remove spaces before company names
+text$Company <-  text$Company %>% 
+  gsub("-", " ",.) %>% 
+  gsub("^[[:space:]]+", "",.)
 
 # Change old company names to new company names 
 text$Company <- text$Company %>% 
@@ -353,7 +357,7 @@ text$Company <- text$Company %>%
   gsub("Ocean Technology", "Subsea", .)
 
 # Merge text and stocks data frames into new data frame df
-df <- merge(text, stocks, by=c("date","Company")) # Merge text and stocks df's
+df <- merge(text, stocks, by=c("date","Company")) 
 
 ###############################################################################
 
