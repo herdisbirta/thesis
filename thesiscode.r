@@ -191,31 +191,31 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
-url <- "https://www.dn.no/auth/login"
-uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
-session <- session(url, user_agent(uastring))
-form <- html_form(session)[[1]]
-fill <- html_form_set(form, 
-                      username = "livewt@live.no",
-                      password = "masterthesis123")
-session_submit(session, fill, submit = NULL, config(referer = session$url))
+#url <- "https://www.dn.no/auth/login"
+#uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
+#session <- session(url, user_agent(uastring))
+#form <- html_form(session)[[1]]
+#fill <- html_form_set(form, 
+#                      username = "livewt@live.no",
+#                      password = "masterthesis123")
+#session_submit(session, fill, submit = NULL, config(referer = session$url))
 
 # Extract text from each article
-text <- list()
+#text <- list()
 
-for (url in url.list) {
-  jump <- session %>% 
-    session_jump_to(url)  # Jump to each URL logged in
-  html <- read_html(jump) %>% 
-    html_nodes("article") %>% 
-    html_nodes("section") %>% 
-    html_nodes("p")
-  text <- rbind(text, toString(html))
-}
+#for (url in url.list) {
+#  jump <- session %>% 
+#    session_jump_to(url)  # Jump to each URL logged in
+#  html <- read_html(jump) %>% 
+#    html_nodes("article") %>% 
+#    html_nodes("section") %>% 
+#    html_nodes("p")
+#  text <- rbind(text, toString(html))
+#}
 
 # save(text, file = "text.RData")
 
-# load("text.RData")
+ load("text.RData")
 
 # Remove HTML code and everything but letters (not completely finished)
 text <- text %>% 
@@ -246,8 +246,6 @@ text <- text[!duplicated(text$text), ]
 
 
 ################################################################################
-
-# CONNECT ARTICLES AND COMPANIES
 
 # Start here 
 rm(list = ls())
