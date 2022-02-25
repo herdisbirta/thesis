@@ -83,11 +83,14 @@ all.firms$Company =
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
   gsub("InterOil Exploration and Production","InterOil",.) %>% 
   gsub("Orkla Group","Orkla",.) %>% 
+  gsub("Oceanteam Shipping", "Oceanteam") %>% 
+  gsub("Solon Eiendom", "Solon") %>% 
   gsub(" International","",.) %>% 
   gsub(" Ltd","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
-  gsub(" ASA","",.)
+  gsub(" ASA","",.) %>% 
+  gsub(" Limited","")
 
 # Remove company names that sound too similar (searching for "Aker" will give
 # results of "Aker BP" and "Aker Solutions" for example, "Wilh Wilhelmsen Holding"
@@ -249,13 +252,16 @@ rm(list = ls())
 load("text.Rdata")
 load("stocks.Rdata")
 
-# CONNECT ARTICLES AND COMPANIES
-
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
 
-# Add Statoil to companies
-companies = c(companies,"Statoil")
+# Add company names more used/or changed during time period
+companies = c(companies,c("Statoil", "Marine Harvest", "Det Norske Oljeselskap",
+                          "Apptix", "Clavis Pharma", "AqualisBraemar", 
+                          "Bergen Group", "Vik Sparebank", "Aurland Sparebank",
+                          "Indre Sogn Sparebank", "Noreco", "Team Bane", 
+                          "Namsos Traffikkselskap", "PGS", "Solstad",
+                          "PSI", "Ocean Technology"))
 
 # 1. Which companies are never mentioned?
 # Create data frame with "companies" column and "mentioned" column
@@ -322,8 +328,26 @@ for (t in 1:length(text$Company)) {
       gsub("", most, text[t,4])
   }
 }
-
+# Replace - with spaces
 text$Company <- gsub("-", " ", text$Company)
+
+# Change old company names to new company names 
+text$Company <- text$Company %>% 
+  gsub("Statoil", "Equinor", .) %>% 
+  gsub("Marine Harvest", "Mowi", .) %>% 
+  gsub("Det Norske Oljeselskap", "Aker BP", .) %>% 
+  gsub("Apptix", "Carasent", .) %>% 
+  gsub("Clavis Pharma|AqualisBraemar", "Aqualis", .) %>% 
+  gsub("Bergen Group", "Endúr", .) %>% 
+  gsub("'Vik Sparebank'|'Aurland Sparebank'|'Indre Sogn Sparebank'", 
+       "Sogn Sparebank", .) %>% 
+  gsub("Noreco", "Norwegian Energy Company", .) %>% 
+  gsub("Team Bane", "NRC Group", .) %>% 
+  gsub("Namsos Trafikkselskap", "NTS", .) %>% 
+  gsub("PGS", "Petroleum Geo-Services", .) %>% 
+  gsub("Solstad", "Solstad Farstad", .) %>% 
+  gsub("PSI", "StrongPoint", .) %>% 
+  gsub("Ocean Technology", "Subsea", .)
 
 
 # Create row with date and company to identify instances where there are more than 1
