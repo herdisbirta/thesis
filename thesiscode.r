@@ -121,7 +121,6 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               last.date = "2019-12-31",
                               freq.data = "daily",
                               do.cache = FALSE
-#                              ,thresh.bad.data = 0
 )
 
 # How many companies do we have? (126)
@@ -239,10 +238,10 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # save(text, file = "text.RData")
 
- load("text.RData")
+load("text.RData")
 
 # Remove HTML code and everything but letters
-text <- text %>% 
+text$text <- text$text %>% 
   str_remove_all("<span.*?p>") %>% 
   str_remove_all("<a.*?>") %>% 
   str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>%
@@ -251,12 +250,13 @@ text <- text %>%
   str_remove_all("[^[[:alpha:]][[:space:]]]") %>% 
   str_remove_all("class.*?intro") %>% 
   str_remove_all("infoboxcontent|classinfoboxcontent.*?aside") %>% 
-  str_remove_all("class|article|author|name|span|separator|strong|rel|div") %>% 
+  str_remove_all("class|article|author|name|span|separator|strong|rel|div|button") %>% 
   str_remove_all("Les også.*$") %>% 
   str_remove_all("figure figure jsfigure.*?figcaptionfigure") %>% 
   str_remove_all("Tapsanslagene.*?rentenem") %>% 
   str_remove_all("figure") %>% 
-  str_remove_all("dnationblockwrapper")
+  str_remove_all("dnationblockwrapper") %>% 
+  str_remove_all("[[:space:]]a[[:space:]]")
 
 # Make a data frame with text, dates and URLs from each article
 text = as.data.frame(text)
@@ -479,11 +479,6 @@ length(which(duplicated(df9b$datecomp)==TRUE))    # We have reached the end
 # with df9b (final non-duplicated rows)
 df.end = full_join(df89,df9b,by="datecomp")
 
-# Replace NAs with " " (tried a few methods, nothing works)
-#df.end = str_replace(string = df.end,
-#                     pattern = "NA",
-#                     replacement = " ")
-
 # Combine columns (note that combining without changing NA columns results in some
 # elements in the text-column end with "NA" or "NANANANANA" or something similar)
 df.end = 
@@ -496,6 +491,9 @@ df.end =
 
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
+
+# Remove NA at end of text
+end.df$text <- str_remove_all(end.df$text, "NA")
 
 # Remove all my unnecessary dfs hahaha :)
 rm(list = ls(pattern = "^df"))
