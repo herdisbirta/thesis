@@ -83,14 +83,14 @@ all.firms$Company =
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
   gsub("InterOil Exploration and Production","InterOil",.) %>% 
   gsub("Orkla Group","Orkla",.) %>% 
-  gsub("Oceanteam Shipping", "Oceanteam") %>% 
-  gsub("Solon Eiendom", "Solon") %>% 
+  gsub("Oceanteam Shipping", "Oceanteam",.) %>% 
+  gsub("Solon Eiendom", "Solon",.) %>% 
   gsub(" International","",.) %>% 
   gsub(" Ltd","",.) %>% 
   gsub("\\*","",.) %>% 
   gsub("\\.","",.) %>% 
   gsub(" ASA","",.) %>% 
-  gsub(" Limited","")
+  gsub(" Limited","",.)
 
 # Remove company names that sound too similar (searching for "Aker" will give
 # results of "Aker BP" and "Aker Solutions" for example, "Wilh Wilhelmsen Holding"
@@ -121,6 +121,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               last.date = "2019-12-31",
                               freq.data = "daily",
                               do.cache = FALSE
+#                              ,thresh.bad.data = 0
 )
 
 # How many companies do we have? (126)
@@ -238,7 +239,7 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # save(text, file = "text.RData")
 
-# load("text.RData")
+ load("text.RData")
 
 # Remove HTML code and everything but letters
 text <- text %>% 
