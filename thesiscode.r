@@ -489,6 +489,9 @@ df.end =
                   sep=" ")) %>% 
   select(datecomp,text,"date" = date.x,"Company" = Company.x)
 
+# Change date: date + 1
+df.end$date <- as.Date(df.end$date) +1
+
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
 
