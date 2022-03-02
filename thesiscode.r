@@ -557,6 +557,9 @@ df$corpus = as.character(corpus)
 
 load("LMNorsk.RData")
 
+# There is a Norwegian alternative of a sentiment dictionary from UiO
+# which is an alternative if we need it
+
 # Sum negative/positive words
 
 sum(LM.norsk$y == 1)  # Number of positive words
