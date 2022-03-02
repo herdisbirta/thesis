@@ -14,6 +14,8 @@ library(RCurl)
 library(dplyr)
 library(tm)
 library(stopwords)
+library(quanteda)
+
 
 
 
@@ -514,7 +516,7 @@ save(df,file = "df.Rdata")
 rm(list = ls())
 load("df.Rdata")
 
-# Stopword removal
+# Stopwords and sentiment score!
 # Stopwords do not have capital letters or punctuation - remove
 corpus = 
   df$text %>% 
@@ -523,20 +525,19 @@ corpus =
 
 # Change the articles to a corpus format
 corpus = 
-  Corpus(VectorSource(as.vector(corpus)))
+  corpus(corpus)
 
-# Retrieve stopwords
-stopw = stopwords::stopwords(language = "no")
+# Tokenize and remove stopwords
+toks = corpus %>% 
+  tokens() %>% 
+  tokens_remove(stopwords::stopwords(language = "no"))
 
-# Remove stopwords
-corpus = tm_map(corpus,removeWords,
-                stopwords::stopwords(language = "no"))
-
-# Error says transformation drops documents, let's check:
-length(corpus)==nrow(df)    # Length of corpus and nrow of text is the same - great
-
-# Return corpus to df (R crashes when I try to view "df" so idk if this works)
-df$corpus = as.character(corpus)
+# Create sentiment score
+for(i in 1:length(toks)){
+  for(j in 1:nrow(df)){
+    # Idea: for i, calculate sentiment score and insert into new column in j
+  }
+}
 
 
 
