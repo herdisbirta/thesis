@@ -9,10 +9,14 @@ library(stringr)
 library(BatchGetSymbols)
 library(lexicon)
 library(translateR)
-library(stopwords)
 library(lubridate)
 library(RCurl)
 library(dplyr)
+library(tm)
+library(stopwords)
+library(quanteda)
+
+
 
 
 # STOCK PRICE RETRIEVAL
@@ -498,13 +502,43 @@ end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks 
 # Remove NA at end of text
 end.df$text <- str_remove_all(end.df$text, "NA")
 
-# Remove all my unnecessary dfs hahaha :)
+# Remove all my unnecessary dfs
 rm(list = ls(pattern = "^df"))
+
+# Final data frame is "df"
+df = end.df
+
+# Save
+save(df,file = "df.Rdata")
 
 ###############################################################################
 
-# Code to retrieve stopwords with package "stopwords"
-stopwords(language = "no")
+rm(list = ls())
+load("df.Rdata")
+
+# Stopwords and sentiment score!
+# Stopwords do not have capital letters or punctuation - remove
+corpus = 
+  df$text %>% 
+  tolower(.) %>% 
+  gsub("[[:punct:]]","",.)
+
+# Change the articles to a corpus format
+corpus = 
+  corpus(corpus)
+
+# Tokenize and remove stopwords
+toks = corpus %>% 
+  tokens() %>% 
+  tokens_remove(stopwords::stopwords(language = "no"))
+
+# Create sentiment score
+for(i in 1:length(toks)){
+  for(j in 1:nrow(df)){
+    # Idea: for i, calculate sentiment score and insert into new column in j
+  }
+}
+
 
 
 ###############################################################################
