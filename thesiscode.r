@@ -515,8 +515,9 @@ save(df,file = "df.Rdata")
 
 rm(list = ls())
 load("df.Rdata")
+  
 
-# Stopwords and sentiment score!
+# Stopwords
 # Stopwords do not have capital letters or punctuation - remove
 corpus = 
   df$text %>% 
@@ -528,18 +529,11 @@ corpus =
   corpus(corpus)
 
 # Tokenize and remove stopwords
+stopw = stopwords::stopwords(language = "no")
+
 toks = corpus %>% 
   tokens() %>% 
-  tokens_remove(stopwords::stopwords(language = "no"))
-
-# Create sentiment score
-for(i in 1:length(toks)){
-  for(j in 1:nrow(df)){
-    # Idea: for i, calculate sentiment score and insert into new column in j
-  }
-}
-
-
+  tokens_remove(stopw)
 
 ###############################################################################
 
@@ -578,4 +572,33 @@ which(sapply(strsplit(LM.norsk$translatedContent, " "), length)>1)
 
 LM.norsk <- LM.norsk[!sapply(strsplit(LM.norsk$translatedContent, " "), length)>1, ]
 
+# Change format of columns so LM.norsk looks exactly like the untranslated dictionary
+LM.norsk = 
+  LM.norsk %>% 
+  select("x" = translatedContent, y)
+
+
+
+# SENTIMENT SCORE
+# It is important that the sentiment dictionary and stopwords dictionary do not
+# overlap, that would result in an unreliable sentiment score.
+inner_join(data.frame(x = stopw),LM.norsk,by="x")
+
+
+# Create actual sentiment score (sum of +1 and -1 values of positive/negative words
+# divided by the total number of words)
+score = vector()
+for(t in 1:length(toks)){
+  score = append(score,
+                 sum(filter(LM.norsk, x %in% toks[[t]])$y) / length(toks[[t]]))
+}
+
+# Test
+sum(filter(LM.norsk, x %in% toks[[1]])$y) / length(toks[[1]]) == score[1]
+sum(filter(LM.norsk, x %in% toks[[3184]])$y) / length(toks[[3184]]) == score[3184]
+
+# Insert into df
+df$score = score
+
+################################################################################
 
