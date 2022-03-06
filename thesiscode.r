@@ -578,7 +578,6 @@ LM.norsk =
   select("x" = translatedContent, y)
 
 
-
 # SENTIMENT SCORE
 # It is important that the sentiment dictionary and stopwords dictionary do not
 # overlap, that would result in an unreliable sentiment score.
@@ -598,7 +597,61 @@ sum(filter(LM.norsk, x %in% toks[[1]])$y) / length(toks[[1]]) == score[1]
 sum(filter(LM.norsk, x %in% toks[[3184]])$y) / length(toks[[3184]]) == score[3184]
 
 # Insert into df
-df$score = score
+df$sentiment = score
 
-################################################################################
+###############################################################################
+
+
+# REGRESSION:
+
+# Split data:
+
+set.seed(123)
+
+ind <- df$date <= 2018-12-31
+
+train <- df[ind,]
+
+test <- df[-ind,]
+
+# Logistic Regression:
+
+# with full data
+simplelog <- glm(av.price~sentiment, data = df, family = binomial())
+
+summary(simplelog)
+
+plot(simplelog)
+
+# with train data
+logreg <- glm(av.price~sentiment, data = train, family = binomial())
+
+pred <- predict(logreg, test, type = "response")
+
+conf.mat <- table(test$av.price, pred > 0.5)
+
+conf.mat
+
+accuracy <- sum(diag(conf.mat2))/sum(conf.mat2)
+
+accuracy
+
+val.set.err <- (confmat[1,2]+confmat[2,1])/(n/2)
+
+val.set.err
+
+plot(df)
+
+lines(pred)
+
+# k-fold cross-validation
+all.cv = rep(NA, 10)
+
+for (i in 1:10) {
+  logfit = glm(av.price~sentiment, data=train, family = binomial())
+  all.cv[i] = cv.glm(train, logfit, K=10)$delta[2]
+}
+
+plot(1:10, all.cv[-c(1, 2)], lwd=2, type="l", xlab="df", ylab="CV error")
+
 
