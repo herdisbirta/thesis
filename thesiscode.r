@@ -15,8 +15,7 @@ library(dplyr)
 library(tm)
 library(stopwords)
 library(quanteda)
-
-
+library(boot)
 
 
 # STOCK PRICE RETRIEVAL
@@ -525,7 +524,6 @@ save(df,file = "df.Rdata")
 
 rm(list = ls())
 load("df.Rdata")
-  
 
 # Stopwords
 # Stopwords do not have capital letters or punctuation - remove
@@ -611,58 +609,91 @@ df$sentiment = score
 
 ###############################################################################
 
-
 # REGRESSION:
+
+# Look at data
+summary(df)
+
+lmreg <- lm(av.price~sentiment, data = df)
+
+summary(lmreg)
+
+
+
+# Logistic Regression:
+
+# change y value to class factor
+df$dir <- as.factor(df$dir)
 
 # Split data:
 
 set.seed(123)
 
-ind <- df$date <= 2018-12-31
+n = nrow(df)
 
-train <- df[ind,]
+n.train = floor(0.8*n)
 
-test <- df[-ind,]
+n.test = n.train+1
 
-# Logistic Regression:
+train = df[1:n.train,]
+
+test = df[n.test:n,]
 
 # with full data
-simplelog <- glm(av.price~sentiment, data = df, family = binomial())
+simplelog <- glm(dir~sentiment, data = df, family = binomial())
 
 summary(simplelog)
 
-plot(simplelog)
+simplepred <- predict(simplelog, type = "response")
+
+simple.conf.mat <- table(df$dir, simplepred > 0.5)
+
+simple.conf.mat
+
+simple.accuracy <- sum(diag(simple.conf.mat))/sum(simple.conf.mat)
+
+simple.accuracy
+
+simple.val.set.err <- (simple.conf.mat[1,2]+simple.conf.mat[2,1])/(n/2)
+
+simple.val.set.err
 
 # with train data
-logreg <- glm(av.price~sentiment, data = train, family = binomial())
+logreg <- glm(dir~sentiment, data = train, family = binomial())
+
+summary(logreg)
+
+par(mfrow = c(2,2))
+
+plot(logreg)
+
+graphics.off()
 
 pred <- predict(logreg, test, type = "response")
 
-conf.mat <- table(test$av.price, pred > 0.5)
+conf.mat <- table(test$dir, pred > 0.5)
 
 conf.mat
 
-accuracy <- sum(diag(conf.mat2))/sum(conf.mat2)
+accuracy <- sum(diag(conf.mat))/sum(conf.mat)
 
 accuracy
 
-val.set.err <- (confmat[1,2]+confmat[2,1])/(n/2)
+val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 
 val.set.err
-
-plot(df)
-
-lines(pred)
 
 # k-fold cross-validation
 all.cv = rep(NA, 10)
 
 for (i in 1:10) {
-  logfit = glm(av.price~sentiment, data=train, family = binomial())
-  all.cv[i] = cv.glm(train, logfit, K=10)$delta[2]
+  logfit = glm(dir~sentiment, data=df, family = binomial())
+  all.cv[i] = cv.glm(df, logfit, K=10)$delta[2]
 }
 
-plot(1:10, all.cv[-c(1, 2)], lwd=2, type="l", xlab="df", ylab="CV error")
+plot(1:10, all.cv, lwd=2, type="l", xlab="df", ylab="CV error")
+
+# Best logistic regression model is with 80% train data 
 
 
-
+# Regression method 2:
