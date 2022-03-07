@@ -134,6 +134,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
 # some we removed to make searching easier later)
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
+
 # Convert stock information into a data frame
 stocks = all.stocks$df.tickers
 
@@ -145,10 +146,19 @@ for(i in 1:nrow(stocks)){
   stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
 }
 
+# Create direction-column
+stocks$diff = stocks$av.price - lag(stocks$av.price)
+stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
+
+for(i in 2:nrow(stocks)){
+  if(stocks$Company[i] != stocks$Company[i-1])
+    stocks$dir[i] = NA
+}
+
 # Only select columns we are interested in
 stocks = 
   stocks %>% 
-  select(Company,ticker,"date"=ref.date,av.price)
+  select(Company,ticker,"date"=ref.date,av.price,dir)
 
 save(stocks,file="stocks.Rdata")
 
@@ -653,5 +663,6 @@ for (i in 1:10) {
 }
 
 plot(1:10, all.cv[-c(1, 2)], lwd=2, type="l", xlab="df", ylab="CV error")
+
 
 
