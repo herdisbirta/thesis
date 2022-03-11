@@ -16,6 +16,7 @@ library(tm)
 library(stopwords)
 library(quanteda)
 library(boot)
+library(e1071)
 
 
 # STOCK PRICE RETRIEVAL
@@ -618,9 +619,11 @@ lmreg <- lm(av.price~sentiment, data = df)
 
 summary(lmreg)
 
-
-
 # Logistic Regression:
+
+# Remove days with no change (better accuracy)
+
+df <- df[!df$dir=="no change",]
 
 # change y value to class factor
 df$dir <- as.factor(df$dir)
@@ -669,19 +672,19 @@ plot(logreg)
 
 graphics.off()
 
-pred <- predict(logreg, test, type = "response")
+logpred <- predict(logreg, test, type = "response")
 
-conf.mat <- table(test$dir, pred > 0.5)
+log.conf.mat <- table(test$dir, logpred > 0.5)
 
-conf.mat
+log.conf.mat
 
-accuracy <- sum(diag(conf.mat))/sum(conf.mat)
+log.accuracy <- sum(diag(log.conf.mat))/sum(log.conf.mat)
 
-accuracy
+log.accuracy
 
-val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
+log.val.set.err <- (log.conf.mat[1,2]+log.conf.mat[2,1])/(n/2)
 
-val.set.err
+log.val.set.err
 
 # k-fold cross-validation
 all.cv = rep(NA, 10)
@@ -696,4 +699,29 @@ plot(1:10, all.cv, lwd=2, type="l", xlab="df", ylab="CV error")
 # Best logistic regression model is with 80% train data 
 
 
-# Regression method 2:
+# Support vector machine:
+
+# Cross-validation:
+
+tunesvm <- tune(svm, dir~sentiment, data = train, kernel = "linear",
+                ranges = list(cost = c(0.001, 0.01, 0.1, 1, 10, 100, 1000)))
+
+summary(tunesvm)
+
+bestsvm <- tunesvm$best.model
+
+svmpred <- predict(bestsvm, test, type = "response")
+
+svm.conf.mat <- table(test$dir, svmpred)
+
+svm.conf.mat
+
+svm.accuracy <- sum(diag(svm.conf.mat))/sum(svm.conf.mat)
+
+svm.accuracy
+
+svm.val.set.err <- (svm.conf.mat[1,2]+svm.conf.mat[2,1])/(n/2)
+
+svm.val.set.err
+
+# Linear better accuracy than radial and polynomial
