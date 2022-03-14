@@ -17,6 +17,8 @@ library(stopwords)
 library(quanteda)
 library(boot)
 library(e1071)
+library(ROCR)
+
 
 
 # STOCK PRICE RETRIEVAL
@@ -610,16 +612,9 @@ df$sentiment = score
 
 ###############################################################################
 
-# REGRESSION:
+# CLASSIFICATION:
 
-# Look at data
-summary(df)
-
-lmreg <- lm(av.price~sentiment, data = df)
-
-summary(lmreg)
-
-# Logistic Regression:
+# Logistic classification:
 
 # Remove days with no change (better accuracy)
 
@@ -643,48 +638,42 @@ train = df[1:n.train,]
 test = df[n.test:n,]
 
 # with full data
-simplelog <- glm(dir~sentiment, data = df, family = binomial())
+logreg1 <- glm(dir~sentiment, data = df, family = binomial())
 
-summary(simplelog)
+summary(logreg1)
 
-simplepred <- predict(simplelog, type = "response")
+logpred1 <- predict(logreg1, type = "response")
 
-simple.conf.mat <- table(df$dir, simplepred > 0.5)
+conf.mat1 <- table(df$dir, logpred1 > 0.5)
 
-simple.conf.mat
+conf.mat1
 
-simple.accuracy <- sum(diag(simple.conf.mat))/sum(simple.conf.mat)
+accuracy1 <- sum(diag(conf.mat1))/sum(conf.mat1)
 
-simple.accuracy
+accuracy1
 
-simple.val.set.err <- (simple.conf.mat[1,2]+simple.conf.mat[2,1])/(n/2)
+val.set.err1 <- (conf.mat1[1,2]+conf.mat1[2,1])/(n/2)
 
-simple.val.set.err
+val.set.err1
 
 # with train data
-logreg <- glm(dir~sentiment, data = train, family = binomial())
+logreg2 <- glm(dir~sentiment, data = train, family = binomial())
 
-summary(logreg)
+summary(logreg2)
 
-par(mfrow = c(2,2))
+logpred2 <- predict(logreg2, test, type = "response")
 
-plot(logreg)
+conf.mat2 <- table(test$dir, logpred2 > 0.5)
 
-graphics.off()
+conf.mat2
 
-logpred <- predict(logreg, test, type = "response")
+accuracy2 <- sum(diag(conf.mat2))/sum(conf.mat2)
 
-log.conf.mat <- table(test$dir, logpred > 0.5)
+accuracy2
 
-log.conf.mat
+val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 
-log.accuracy <- sum(diag(log.conf.mat))/sum(log.conf.mat)
-
-log.accuracy
-
-log.val.set.err <- (log.conf.mat[1,2]+log.conf.mat[2,1])/(n/2)
-
-log.val.set.err
+val.set.err2
 
 # k-fold cross-validation
 all.cv = rep(NA, 10)
@@ -696,13 +685,15 @@ for (i in 1:10) {
 
 plot(1:10, all.cv, lwd=2, type="l", xlab="df", ylab="CV error")
 
-# Best logistic regression model is with 80% train data 
+# ROC
+rocpred <- prediction(logpred2, test$dir)
+
+rocperf <- performance(rocpred, "tpr", "fpr")
+
+plot(rocperf)
 
 
-# Support vector machine:
-
-# Cross-validation:
-
+# SVM classification:
 tunesvm <- tune(svm, dir~sentiment, data = train, kernel = "linear",
                 ranges = list(cost = c(0.001, 0.01, 0.1, 1, 10, 100, 1000)))
 
@@ -710,18 +701,66 @@ summary(tunesvm)
 
 bestsvm <- tunesvm$best.model
 
-svmpred <- predict(bestsvm, test, type = "response")
+predsvm <- predict(bestsvm, test, type = "response")
 
-svm.conf.mat <- table(test$dir, svmpred)
+conf.mat3 <- table(test$dir, svmpred)
 
-svm.conf.mat
+conf.mat3
 
-svm.accuracy <- sum(diag(svm.conf.mat))/sum(svm.conf.mat)
+accuracy3 <- sum(diag(conf.mat3))/sum(conf.mat3)
 
-svm.accuracy
+accuracy3
 
-svm.val.set.err <- (svm.conf.mat[1,2]+svm.conf.mat[2,1])/(n/2)
+val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 
-svm.val.set.err
+val.set.err3
 
 # Linear better accuracy than radial and polynomial
+
+###############################################################################
+
+
+# REGRESSION:
+
+# Linear regression:
+lmreg <- lm(av.price~sentiment, data = train)
+
+summary(lmreg)
+
+predlm <- predict(lmreg, test)
+
+conf.mat4 <- table(test$dir, predlm)
+
+conf.mat4
+
+accuracy4 <- sum(diag(conf.mat4))/sum(conf.mat4)
+
+accuracy4
+
+val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
+
+val.set.err4
+
+# SVM regression:
+svmreg <- svm(av.price~sentiment, data = train)
+
+summary(svmreg)
+
+predsvmreg <- predict(svmreg, test)
+
+conf.mat5 <- table(test$dir, predsvmreg)
+
+conf.mat5
+
+accuracy5 <- sum(diag(conf.mat5))/sum(conf.mat5)
+
+accuracy5
+
+val.set.err5 <- (conf.mat5[1,2]+conf.mat5[2,1])/(n/2)
+
+val.set.err5
+
+# Horrible results with both lm and svm regression, better results with
+# classification
+
+###############################################################################
