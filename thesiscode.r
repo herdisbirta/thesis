@@ -18,6 +18,7 @@ library(quanteda)
 library(boot)
 library(e1071)
 library(ROCR)
+library(caret)
 
 
 
@@ -701,7 +702,7 @@ summary(tunesvm)
 
 bestsvm <- tunesvm$best.model
 
-predsvm <- predict(bestsvm, test, type = "response")
+svmpred <- predict(bestsvm, test)
 
 conf.mat3 <- table(test$dir, svmpred)
 
@@ -729,7 +730,7 @@ summary(lmreg)
 
 predlm <- predict(lmreg, test)
 
-conf.mat4 <- table(test$dir, predlm)
+conf.mat4 <- table(test$av.price, predlm)
 
 conf.mat4
 
@@ -748,7 +749,7 @@ summary(svmreg)
 
 predsvmreg <- predict(svmreg, test)
 
-conf.mat5 <- table(test$dir, predsvmreg)
+conf.mat5 <- table(test$av.price, predsvmreg)
 
 conf.mat5
 
