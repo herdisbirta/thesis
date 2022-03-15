@@ -718,6 +718,37 @@ val.set.err3
 
 # Linear better accuracy than radial and polynomial
 
+# GBM classification:
+xtrain = train[,7:8]
+
+ytrain = train$dir
+
+xtest = test[,7:8]
+
+ytest = test$dir
+
+x = cbind(xtrain, ytrain)
+
+fitControl = trainControl(method = "repeatedcv", number=20)
+
+gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=fitControl,
+                verbose=F)
+
+gbmpred = predict(gbmfit, xtest)
+
+conf.mat4 <- table(test$dir, gbmpred)
+
+conf.mat4
+
+accuracy4 <- sum(diag(conf.mat4))/sum(conf.mat4)
+
+accuracy4
+
+val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
+
+val.set.err4
+
+
 ###############################################################################
 
 
