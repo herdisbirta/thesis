@@ -19,6 +19,10 @@ library(boot)
 library(e1071)
 library(ROCR)
 library(caret)
+library(class)
+library(gam)
+library(tree)
+library(randomForest)
 
 
 
@@ -748,7 +752,106 @@ val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 
 val.set.err4
 
+# K-Nearest Neighbors:
+pred5 <- knn(as.matrix(train$sentiment), as.matrix(test$sentiment), train$dir, k=1)
 
+conf.mat5 <- table(test$dir, pred5)
+
+conf.mat5
+
+accuracy5 <- sum(diag(conf.mat5))/sum(conf.mat5)
+
+accuracy5
+
+val.set.err5 <- (conf.mat5[1,2]+conf.mat5[2,1])/(n/2)
+
+val.set.err5
+
+# Naive Bayes:
+nbfit <- naiveBayes(dir~sentiment, data = train)
+
+pred6 <- predict(nbfit, test)
+
+conf.mat6 <- table(test$dir, pred6)
+
+conf.mat6
+
+accuracy6 <- sum(diag(conf.mat6))/sum(conf.mat6)
+
+accuracy6
+
+val.set.err6 <- (conf.mat6[1,2]+conf.mat6[2,1])/(n/2)
+
+val.set.err6
+
+# Generalized additive models:
+gamfit <- gam(as.numeric(dir)~s(sentiment, 4), data = train)
+
+summary(gamfit)
+
+pred7 <- predict(gamfit, test)
+
+conf.mat7 <- table(test$dir, pred6)
+
+conf.mat7
+
+accuracy7 <- sum(diag(conf.mat7))/sum(conf.mat7)
+
+accuracy7
+
+val.set.err7 <- (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
+
+val.set.err7
+
+# Tree:
+treefit <- tree(dir~sentiment, data = train)
+
+summary(treefit)
+
+pred8 <- predict(treefit, test, type = "class")
+
+conf.mat8 <- table(test$dir, pred8)
+
+conf.mat8
+
+accuracy8 <- sum(diag(conf.mat8))/sum(conf.mat8)
+
+accuracy8
+
+val.set.err8 <- (conf.mat8[1,2]+conf.mat8[2,1])/(n/2)
+
+val.set.err8
+
+
+rffit <- randomForest(dir~sentiment, data = train, mtry = 1)
+
+pred9 <- predict(rffit, test)
+
+conf.mat9 <- table(test$dir, pred9)
+
+conf.mat9
+
+accuracy9 <- sum(diag(conf.mat9))/sum(conf.mat9)
+
+accuracy9
+
+val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
+
+val.set.err9
+
+# Overview of results from all methods:
+method = c("Logistic","SVM", "GBM","KNN", "Naive bayes", "GAM", "Tree", 
+           "RandomForest")
+
+acc.all = c(accuracy2, accuracy3, accuracy4, accuracy5, accuracy6,
+            accuracy7, accuracy8, accuracy9)
+
+vse.all = c(val.set.err2, val.set.err3, val.set.err4, val.set.err5, 
+            val.set.err6, val.set.err7, val.set.err8, val.set.err9)
+
+final.table = data.frame(method,
+                         "Accuracy" = acc.all,
+                         "Validation set error" = vse.all)
 ###############################################################################
 
 
