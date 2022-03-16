@@ -25,7 +25,6 @@ library(tree)
 library(randomForest)
 
 
-
 # STOCK PRICE RETRIEVAL
 
 # List of ALL listed companies
@@ -839,15 +838,54 @@ val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
 
 val.set.err9
 
+
+# Linear discriminant analysis (LDA)
+lda.fit = MASS::lda(dir~sentiment, data = train)
+
+# Plot
+plot(lda.fit)
+
+# Predict
+lda.pred = predict (lda.fit, test)
+lda.class = lda.pred$class
+
+# Confusion matrix
+conf.mat10 = table(test$dir, lda.class)
+
+# Accuracy
+accuracy10 = sum(diag(conf.mat10))/sum(conf.mat10)
+
+# Val set error
+val.set.err10 <- (conf.mat10[1,2]+conf.mat10[2,1])/(n/2)
+
+
+
+# Quadratic discriminant analysis (QDA)
+qda.fit = MASS::qda(dir~sentiment, data = train)
+qda.fit
+
+# Predict
+qda.class = predict(qda.fit, test)$class
+
+# Confusion matrix
+conf.mat11 = table(test$dir, qda.class)
+
+# Accuracy
+accuracy11 = sum(diag(conf.mat11))/sum(conf.mat11)
+
+# Val set error
+val.set.err11 <- (conf.mat11[1,2]+conf.mat11[2,1])/(n/2)
+
 # Overview of results from all methods:
 method = c("Logistic","SVM", "GBM","KNN", "Naive bayes", "GAM", "Tree", 
-           "RandomForest")
+           "RandomForest", "LDA", "QDA")
 
 acc.all = c(accuracy2, accuracy3, accuracy4, accuracy5, accuracy6,
-            accuracy7, accuracy8, accuracy9)
+            accuracy7, accuracy8, accuracy9, accuracy10, accuracy11)
 
 vse.all = c(val.set.err2, val.set.err3, val.set.err4, val.set.err5, 
-            val.set.err6, val.set.err7, val.set.err8, val.set.err9)
+            val.set.err6, val.set.err7, val.set.err8, val.set.err9,
+            val.set.err10, val.set.err11)
 
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
