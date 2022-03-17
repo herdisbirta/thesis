@@ -633,7 +633,7 @@ set.seed(123)
 
 n = nrow(df)
 
-n.train = floor(0.8*n)
+n.train = floor(0.9*n)
 
 n.test = n.train+1
 
@@ -679,6 +679,8 @@ val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 
 val.set.err2
 
+confusionMatrix(factor(ifelse(logpred2 > 0.5, "up", "down")), test$dir)
+
 # k-fold cross-validation
 all.cv = rep(NA, 10)
 
@@ -719,6 +721,8 @@ val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 
 val.set.err3
 
+confusionMatrix(svmpred, test$dir)
+
 # Linear better accuracy than radial and polynomial
 
 # GBM classification:
@@ -751,10 +755,12 @@ val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 
 val.set.err4
 
-# K-Nearest Neighbors:
-pred5 <- knn(as.matrix(train$sentiment), as.matrix(test$sentiment), train$dir, k=1)
+confusionMatrix(gbmpred, test$dir)
 
-conf.mat5 <- table(test$dir, pred5)
+# K-Nearest Neighbors:
+knnpred <- knn(as.matrix(train$sentiment), as.matrix(test$sentiment), train$dir, k=1)
+
+conf.mat5 <- table(test$dir, knnpred)
 
 conf.mat5
 
@@ -766,12 +772,14 @@ val.set.err5 <- (conf.mat5[1,2]+conf.mat5[2,1])/(n/2)
 
 val.set.err5
 
+confusionMatrix(knnpred, test$dir)
+
 # Naive Bayes:
 nbfit <- naiveBayes(dir~sentiment, data = train)
 
-pred6 <- predict(nbfit, test)
+nbpred <- predict(nbfit, test)
 
-conf.mat6 <- table(test$dir, pred6)
+conf.mat6 <- table(test$dir, nbpred)
 
 conf.mat6
 
@@ -783,14 +791,16 @@ val.set.err6 <- (conf.mat6[1,2]+conf.mat6[2,1])/(n/2)
 
 val.set.err6
 
+confusionMatrix(nbpred, test$dir)
+
 # Generalized additive models:
 gamfit <- gam(as.numeric(dir)~s(sentiment, 4), data = train)
 
 summary(gamfit)
 
-pred7 <- predict(gamfit, test)
+gampred <- predict(gamfit, test)
 
-conf.mat7 <- table(test$dir, pred6)
+conf.mat7 <- table(test$dir, gampred)
 
 conf.mat7
 
@@ -802,14 +812,14 @@ val.set.err7 <- (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
 
 val.set.err7
 
-# Tree:
-treefit <- tree(dir~sentiment, data = train)
+confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)
 
-summary(treefit)
+# Tree (randomForest):
+rffit <- randomForest(dir~sentiment, data = train, mtry = 1)
 
-pred8 <- predict(treefit, test, type = "class")
+rfpred <- predict(rffit, test)
 
-conf.mat8 <- table(test$dir, pred8)
+conf.mat8 <- table(test$dir, rfpred)
 
 conf.mat8
 
@@ -821,22 +831,7 @@ val.set.err8 <- (conf.mat8[1,2]+conf.mat8[2,1])/(n/2)
 
 val.set.err8
 
-
-rffit <- randomForest(dir~sentiment, data = train, mtry = 1)
-
-pred9 <- predict(rffit, test)
-
-conf.mat9 <- table(test$dir, pred9)
-
-conf.mat9
-
-accuracy9 <- sum(diag(conf.mat9))/sum(conf.mat9)
-
-accuracy9
-
-val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
-
-val.set.err9
+confusionMatrix(rfpred, test$dir)
 
 
 # Linear discriminant analysis (LDA)
@@ -850,14 +845,15 @@ lda.pred = predict (lda.fit, test)
 lda.class = lda.pred$class
 
 # Confusion matrix
-conf.mat10 = table(test$dir, lda.class)
+conf.mat9 = table(test$dir, lda.class)
 
 # Accuracy
-accuracy10 = sum(diag(conf.mat10))/sum(conf.mat10)
+accuracy9 = sum(diag(conf.mat9))/sum(conf.mat9)
 
 # Val set error
-val.set.err10 <- (conf.mat10[1,2]+conf.mat10[2,1])/(n/2)
+val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
 
+confusionMatrix(lda.class, test$dir)
 
 
 # Quadratic discriminant analysis (QDA)
@@ -868,24 +864,26 @@ qda.fit
 qda.class = predict(qda.fit, test)$class
 
 # Confusion matrix
-conf.mat11 = table(test$dir, qda.class)
+conf.mat10 = table(test$dir, qda.class)
 
 # Accuracy
-accuracy11 = sum(diag(conf.mat11))/sum(conf.mat11)
+accuracy10 = sum(diag(conf.mat10))/sum(conf.mat10)
 
 # Val set error
-val.set.err11 <- (conf.mat11[1,2]+conf.mat11[2,1])/(n/2)
+val.set.err10 <- (conf.mat10[1,2]+conf.mat10[2,1])/(n/2)
+
+confusionMatrix(qda.class, test$dir)
 
 # Overview of results from all methods:
-method = c("Logistic","SVM", "GBM","KNN", "Naive bayes", "GAM", "Tree", 
+method = c("Logistic","SVM", "GBM","KNN", "Naive bayes", "GAM", 
            "RandomForest", "LDA", "QDA")
 
 acc.all = c(accuracy2, accuracy3, accuracy4, accuracy5, accuracy6,
-            accuracy7, accuracy8, accuracy9, accuracy10, accuracy11)
+            accuracy7, accuracy8, accuracy9, accuracy10)
 
 vse.all = c(val.set.err2, val.set.err3, val.set.err4, val.set.err5, 
             val.set.err6, val.set.err7, val.set.err8, val.set.err9,
-            val.set.err10, val.set.err11)
+            val.set.err10)
 
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
