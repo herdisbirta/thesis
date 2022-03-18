@@ -2,6 +2,7 @@
 
 
 # Libraries
+library(readxl)
 library(rvest)
 library(RSelenium)
 library(httr)
@@ -24,103 +25,162 @@ library(gam)
 library(tree)
 library(randomForest)
 
-
 # STOCK PRICE RETRIEVAL
+# List of all registered companies
 
-# List of ALL listed companies
-all.firms <- as.data.frame(read_html("https://en.wikipedia.org/wiki/List_of_companies_listed_on_the_Oslo_Stock_Exchange") %>% 
-                             html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
-                             html_table()) #retrieve table
+# Get list of all .xlsx files
+file.list = list.files(pattern='*.xlsx')
 
-# Change format of first day of listing column
-all.firms$First.day.of.listing = 
-  as.Date(all.firms$First.day.of.listing, format= "%d %B %Y")
+# Read all files
+y2014 = read_excel(path = file.list[1], skip = 9)   # Read 2014 file
+y2014 = rbind(y2014[1:25,],    # OBX
+              y2014[29:150,],  # OB Match
+              y2014[155:185,]) # OB Standard and New
 
-# Filter to relevant time period
+y2015 = read_excel(path = file.list[2], skip = 9)   # Read 2015 file
+y2015 = rbind(y2015[1:25,],    # OBX
+              y2015[29:148,],  # OB Match
+              y2015[153:181,]) # OB Standard and New
+
+y2016 = read_excel(path = file.list[3], skip = 9)   # Read 2016 file
+y2016 = rbind(y2016[1:25,],    # OBX
+              y2016[29:151,],  # OB Match
+              y2016[155:180,]) # OB Standard and New
+
+y2017 = read_excel(path = file.list[4], skip = 9)   # Read 2017 file
+y2017 = rbind(y2017[1:25,],    # OBX
+              y2017[28:163,],  # OB Match
+              y2017[167:187,]) # OB Standard and New
+
+y2018 = read_excel(path = file.list[5], skip = 9)   # Read 2018 file
+y2018 = rbind(y2018[1:25,],    # OBX
+              y2018[28:158,],  # OB Match
+              y2018[162:186,]) # OB Standard and New
+
+y2019 = read_excel(path = file.list[6], skip = 9)   # Read 2019 file
+y2019 = rbind(y2019[1:25,],    # OBX
+              y2019[28:162,],  # OB Match
+              y2019[166:188,]) # OB Standard and New
+
+# Combine
+all.firms = rbind(y2014,y2015,y2016,y2017,y2018,y2019)
+
+# Select relevant columns
 all.firms = 
   all.firms %>% 
-  filter(First.day.of.listing <= "2019-12-31")
+  select("Company" = OBX, ticker = ...20)
 
-# Were any companies delisted?
-delisted.firms = as.data.frame(read_html("https://en.wikipedia.org/wiki/List_of_companies_delisted_from_Oslo_Stock_Exchange") %>% 
-                                 html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>% #table containing the information
-                                 html_table()) #retrieve table
+# Find unique company names
+all.firms = all.firms[!duplicated(all.firms$ticker),]
 
+# Remove 'y20XX' data frames
+rm(list = ls(pattern = "^y20"))
 
-inner_join(all.firms,delisted.firms,by = "Company")
+# Manually change company names to their more "referred-to" versions
+# (Yara international becomes Yara, etc.), remove "," and "."
+all.firms$Company = 
+  all.firms$Company %>% 
+  gsub(" International","",.) %>% 
+  gsub("Scatec Solar","Scatec",.) %>% 
+  gsub("Lerøy Seafood Group","Lerøy Seafood",.) %>%
+  gsub("Fjordkraft Holding", "Fjordkraft", .) %>% 
+  gsub("FLEX LNG","Flex LNG",.) %>% 
+  gsub("poLight","Polight",.) %>% 
+  gsub("SATS","Sats",.) %>% 
+  gsub("Crayon Group Holding", "Crayon",.) %>% 
+  gsub("Insr Insurance Group", "Insr Insurance",.) %>% 
+  gsub("StrongPoint","Strongpoint",.) %>% 
+  gsub("NEXT Biometrics Group", "Next Biometrics",.) %>% 
+  gsub("IDEX", "Idex",.) %>% 
+  gsub("Gaming Innovation Group", "Gaming Innovation",.) %>% 
+  gsub("SpareBank 1 SR-Bank","SpareBank 1",.) %>% 
+  gsub("SeaBird Exploration","Seabird Exploration",.) %>% 
+  gsub("SAS AB", "SAS", .) %>% 
+  gsub("SalMar","Salmar",.) %>% 
+  gsub("RAK Petroleum","Rak Petroleum",.) %>% 
+  gsub("Questerre Energy Corporation","Questerre",.) %>% 
+  gsub("Panoro Energy","Panoro",.) %>% 
+  gsub("Oceanteam Shipping","Oceanteam",.) %>% 
+  gsub("NEL","Nel",.) %>% 
+  gsub("Jinhui Shipping and Transportation","Jinhui Shipping",.) %>% 
+  gsub("Havyard Group","Havyard",.) %>% 
+  gsub("Högh LNG Holdings","Höegh LNG",.) %>% 
+  gsub("NORBIT","Norbit",.) %>% 
+  gsub("Avance Gas Holding","Avance Gas",.) %>% 
+  gsub("ABG Sundal Collier Holding","ABG Sundal Collier",.) %>% 
+  gsub("American Shipping Company","American Shipping",.) %>% 
+  gsub("TGS-NOPEC Geophysical Company","TGS-Nopec",.) %>% 
+  gsub("REC Silicon","Rec Silicon",.) %>% 
+  gsub("Golden Ocean Group","Golden Ocean",.) %>% 
+  gsub("Otello Corporation","Otello",.) %>% 
+  gsub("PCI Biotech Holding","PCI Biotech",.) %>% 
+  gsub("Vistin Pharma", "Vistin",.) %>% 
+  gsub("Austevoll Seafood","Austevoll",.) %>% 
+  gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
+  gsub("InterOil Exploration and Production","Interoil",.) %>% 
+  gsub("Saferoad Holding", "Saferoad",.) %>% 
+  gsub("\\.","",.) %>% 
+  gsub("\\,","",.) %>% 
+  gsub(" Limited","",.)
 
-# Seems like only Elkem was delisted in or after 2005
+# We want "SD Standard Drilling" to be "S.D. Standard Drilling"
+all.firms$Company = 
+  all.firms$Company %>% 
+  gsub("SD Standard Drilling", "S.D. Standard Drilling",.) 
+
+# Statoil has a new name and ticker
+all.firms[21,] = list("Equinor","EQNR")
+
+# Remove company names that sound too similar (searching for "Aker" will give
+# results of "Aker BP" and "Aker BP" for example, "Wilh Wilhelmsen Holding"
+# has both "ser A" and "ser B")
 all.firms = 
   all.firms %>% 
-  filter(Company != "Elkem")
-
-# Get tickers
+  subset(Company != "Aker" & Company != "Odfjell ser A" &
+           Company != "Odfjell ser B" & Company != "Schibsted ser A" &
+           Company != "Schibsted ser B" &
+           Company != "Wilh Wilhelmsen Holding ser A" &
+           Company != "Wilh Wilhelmsen Holding ser B" &
+           Company != "Adevinta ser A" &
+           Company != "Solstad Offshore ser B" &
+           Company != "Hafslund ser A" & Company != "Hafslund ser B")
 
 # Manually rename wrong tickers
-all.firms$Ticker = 
-  all.firms$Ticker %>% 
+all.firms$ticker = 
+  all.firms$ticker %>% 
   gsub("AKERBP","AKRBP",.) %>% 
   gsub("AKA","AKAST",.) %>% 
   gsub("ARCHER","ARCH",.) %>% 
   gsub("ASETEK","ASTK",.) %>% 
   gsub("AVANCE","AGAS",.) %>% 
   gsub("BEL","BELCO",.) %>% 
-  gsub("BON","BONHR",.) %>% 
+  gsub("BONHRHR","BONHR",.) %>% 
   gsub("BDRILL","BORR",.) %>% 
   gsub("BOUVET","BOUV",.) %>% 
   gsub("COV","CONTX",.) %>% 
   gsub("CRAYON","CRAYN",.) %>% 
   gsub("FKRAFT","FKRFT",.) %>% 
-  gsub("ITE","ITERA",.) %>% 
-  gsub("NANO","NANOV",.) %>% 
+  gsub("NANOVV","NANOV",.) %>% 
   gsub("PROTCT","PROT",.) %>% 
   gsub("REC","RECSI",.) %>% 
   gsub("SALMON","SACAM",.) %>% 
   gsub("SBX","GEG",.) %>% 
   gsub("SRBANK","SRBNK",.) %>% 
   gsub("STRONG","STRO",.) %>% 
-  gsub("VISTIN","VISTN",.)
-
-# Manually change company names to their more "referred-to" versions
-# (Subsea 7 becomes Subsea, Yara international becomes Yara, etc.) (more examples?)
-# Remove "*" and ".", remove "ASA"
-all.firms$Company = 
-  all.firms$Company %>% 
-  gsub("Yara International", "Yara",.) %>% 
-  gsub("Subsea 7","Subsea",.) %>% 
-  gsub("Scatec Solar","Scatec",.) %>% 
-  gsub("Lerøy Seafood Group","Lerøy",.) %>% 
-  gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
-  gsub("InterOil Exploration and Production","InterOil",.) %>% 
-  gsub("Orkla Group","Orkla",.) %>% 
-  gsub("Oceanteam Shipping", "Oceanteam",.) %>% 
-  gsub("Solon Eiendom", "Solon",.) %>% 
-  gsub(" International","",.) %>% 
-  gsub(" Ltd","",.) %>% 
-  gsub("\\*","",.) %>% 
-  gsub("\\.","",.) %>% 
-  gsub(" ASA","",.) %>% 
-  gsub(" Limited","",.)
-
-# Remove company names that sound too similar (searching for "Aker" will give
-# results of "Aker BP" and "Aker Solutions" for example, "Wilh Wilhelmsen Holding"
-# has both "ser A" and "ser B")
-
-all.firms = 
-  all.firms %>% 
-  subset(Company != "Aker" & Company != "Odfjell ser A" &
-         Company != "Odfjell ser B" & Company != "Schibsted ser A" & 
-         Company != "Schibsted ser B" & Company != "Wilh Wilhelmsen Holding ser A" &
-         Company != "Wilh Wilhelmsen Holding ser B")
+  gsub("VISTIN","VISTN",.) %>% 
+  gsub("ASC","ABG",.) %>% 
+  gsub("AXA","ACR",.) %>% 
+  gsub("NORBIT","NORBT",.) %>% 
+  gsub("OTELLO","OTEC",.) %>% 
+  gsub("RECSISI","RECSI",.) %>% 
+  gsub("SAS NOK","SASNO",.) %>% 
+  gsub("ULTIMO","ULTI",.) %>% 
+  gsub("WALWIL","WAWI",.) %>% 
+  gsub("WWIB","TRVX",.) %>% 
+  gsub("SCH","SCHA",.)
 
 # Edit ticker to be on the format "TICKER.OL"
-all.firms$ticker = paste0((gsub("OSE: ","",all.firms$Ticker)),".OL")
-
-# Select relevant columns
-all.firms = 
-  all.firms %>% 
-  select(Company,ticker,First.day.of.listing)
-
+all.firms$ticker = paste0(all.firms$ticker, ".OL")
 
 # Create vector of tickers
 all.tickers = as.vector(all.firms$ticker)
@@ -130,16 +190,14 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               first.date = "2014-01-01",
                               last.date = "2019-12-31",
                               freq.data = "daily",
-                              do.cache = FALSE
-)
+                              do.cache = FALSE,
+                              thresh.bad.data = 0)
 
-# How many companies do we have? (126)
-# We originally had 183 tickers for companies, some only had price info for
-# <75% of the time period (and was therefore skipped), some tickers didn't have
-# any info (deregistered or acquired by other companies and therefore no info),
-# some we removed to make searching easier later)
+
+# How many companies do we have? (156)
+# We originally had 247 tickers for companies,some tickers didn't have
+# any info (deregistered or acquired by other companies and therefore no info)
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
-
 
 # Convert stock information into a data frame
 stocks = all.stocks$df.tickers
@@ -152,6 +210,12 @@ for(i in 1:nrow(stocks)){
   stocks$av.price[i] = (stocks$price.open[i]+stocks$price.close[i])/2
 }
 
+# Only select columns we are interested in
+stocks = 
+  stocks %>% 
+  select(Company,ticker,"date"=ref.date,av.price)
+
+
 # Create direction-column
 stocks$diff = stocks$av.price - lag(stocks$av.price)
 stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
@@ -160,11 +224,6 @@ for(i in 2:nrow(stocks)){
   if(stocks$Company[i] != stocks$Company[i-1])
     stocks$dir[i] = NA
 }
-
-# Only select columns we are interested in
-stocks = 
-  stocks %>% 
-  select(Company,ticker,"date"=ref.date,av.price,dir)
 
 save(stocks,file="stocks.Rdata")
 
@@ -211,29 +270,6 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
-
-# url <- "https://www.dn.no/auth/login"
-# uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
-# session <- session(url, user_agent(uastring))
-# form <- html_form(session)[[1]]
-# fill <- html_form_set(form, 
-#                       username = "livewt@live.no",
-#                       password = "masterthesis123")
-# session_submit(session, fill, submit = NULL, config(referer = session$url))
-
-# Extract text from each article
-# text <- list()
-
-# for (url in url.list) {
-#   jump <- session %>% 
-#     session_jump_to(url)  # Jump to each URL logged in
-#   html <- read_html(jump) %>% 
-#     html_nodes("article") %>% 
-#     html_nodes("section") %>% 
-#     html_nodes("p")
-#   text <- rbind(text, toString(html))
-# }
-
 #url <- "https://www.dn.no/auth/login"
 #uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
 #session <- session(url, user_agent(uastring))
@@ -260,25 +296,19 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 load("text.RData")
 
-# Remove HTML code and everything but letters
-text$text <- text$text %>% 
+# Remove HTML code and everything but letters (not completely finished)
+text <- text %>% 
+  str_remove_all("class.*?\\n") %>%
   str_remove_all("<span.*?p>") %>% 
   str_remove_all("<a.*?>") %>% 
-  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>%
+  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>% 
   str_remove_all("<aside.*?<\\aside") %>% 
-  str_remove_all("<p|</p>|\n|<a|a>|<b|b>|<i|i>") %>% 
-  str_remove_all("[^[[:alpha:]][[:space:]]]") %>% 
-  str_remove_all("class.*?intro") %>% 
-  str_remove_all("infoboxcontent|classinfoboxcontent.*?aside") %>% 
-  str_remove_all("class|article|author|name|span|separator|strong|rel|div|button") %>% 
-  str_remove_all("Les også.*$") %>% 
-  str_remove_all("figure figure jsfigure.*?figcaptionfigure") %>% 
-  str_remove_all("Tapsanslagene.*?rentenem") %>% 
-  str_remove_all("figure") %>% 
-  str_remove_all("dnationblockwrapper") %>% 
-  str_remove_all("[[:space:]]a[[:space:]]")
+  str_replace_all("<p", " ") %>% 
+  str_replace_all("</p>", " ") %>% 
+  str_replace_all("\n", " ") %>% 
+  str_replace_all("[^[[:alpha:]][[:space:]]]", " ") 
 
-# Make a data frame with text, dates and URLs from each article
+# Make a data frame with dates, URLs and text from each article
 text = as.data.frame(text)
 
 text$date = as.Date(date.list, "%d.%m.%Y")
@@ -307,9 +337,8 @@ companies = unique(stocks$Company)
 # Add company names more used/or changed during time period
 companies = c(companies,c("Statoil", "Marine Harvest", "Det Norske Oljeselskap",
                           "Apptix", "Clavis Pharma", "AqualisBraemar", 
-                          "Bergen Group", "Vik Sparebank", "Aurland Sparebank",
-                          "Indre Sogn Sparebank", "Noreco", "Team Bane", 
-                          "Namsos Traffikkselskap", "PGS", "Solstad",
+                          "Bergen Group", "Noreco", "Team Bane", 
+                          "Namsos Traffikkselskap", "PGS",
                           "PSI", "Ocean Technology"))
 
 # 1. Which companies are never mentioned?
@@ -317,15 +346,15 @@ companies = c(companies,c("Statoil", "Marine Harvest", "Det Norske Oljeselskap",
 comp.df = data.frame(companies,"mentioned" = 0)
 
 # Create string with text from all articles (easier to search in than in each row)
-articles = toString(text$text)   # Takes a minute or two
+articles = toString(text$text)  
 
 # Loop: for i in each row of comp.df, assign 1 to the "mentioned" column if a
-# company name is found in the "articles" string and 0 if not
+# company name is found in the "articles" string and NA if not
 for(i in 1:nrow(comp.df)){
   comp.df$mentioned[i] = 
     ifelse(str_detect(string = articles,
                       pattern = comp.df$companies[i])==TRUE,
-           1,NA)    # If company i is not detected in the "articles" string ,
+           1,NA)  
 }
 
 # Remove companies that are never mentioned from the "companies" list
@@ -393,15 +422,12 @@ text$Company <- text$Company %>%
   gsub("Apptix", "Carasent", .) %>% 
   gsub("Clavis Pharma|AqualisBraemar", "Aqualis", .) %>% 
   gsub("Bergen Group", "Endúr", .) %>% 
-  gsub("'Vik Sparebank'|'Aurland Sparebank'|'Indre Sogn Sparebank'", 
-       "Sogn Sparebank", .) %>% 
   gsub("Noreco", "Norwegian Energy Company", .) %>% 
   gsub("Team Bane", "NRC Group", .) %>% 
   gsub("Namsos Trafikkselskap", "NTS", .) %>% 
   gsub("PGS", "Petroleum Geo-Services", .) %>% 
-  gsub("Solstad", "Solstad Farstad", .) %>% 
-  gsub("PSI", "StrongPoint", .) %>% 
-  gsub("Ocean Technology", "Subsea", .)
+  gsub("PSI", "Strongpoint", .) %>% 
+  gsub("Ocean Technology", "Subsea 7", .)
 
 # Create row with date and company to identify instances where there are more than 1
 # article about a company on a specific date:
@@ -529,7 +555,6 @@ save(df,file = "df.Rdata")
 
 ###############################################################################
 
-rm(list = ls())
 load("df.Rdata")
 
 # Stopwords
