@@ -547,8 +547,11 @@ end.df$text <- str_remove_all(end.df$text, "NA")
 # Remove all my unnecessary dfs
 rm(list = ls(pattern = "^df"))
 
+# Remove NAs
+end.df$text = na.omit(end.df$text)
+
 # Final data frame is "df"
-df = na.omit(end.df$text)
+df = end.df
 
 # Save
 save(df,file = "df.Rdata")
@@ -648,6 +651,9 @@ df$sentiment = score
 # Remove days with no change (better accuracy)
 
 df <- df[!df$dir=="no change",]
+
+# This creates a NA row - remove
+df = na.omit(df)
 
 # change y value to class factor
 df$dir <- as.factor(df$dir)
@@ -751,11 +757,11 @@ confusionMatrix(svmpred, test$dir)
 # Linear better accuracy than radial and polynomial
 
 # GBM classification:
-xtrain = train[,7:8]
+xtrain = train[,8:9]
 
 ytrain = train$dir
 
-xtest = test[,7:8]
+xtest = test[,8:9]
 
 ytest = test$dir
 
@@ -837,7 +843,14 @@ val.set.err7 <- (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
 
 val.set.err7
 
-confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)
+# I think this is what we want:
+conf.mat7 = confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)$table
+conf.mat7
+
+accuracy7 = sum(diag(conf.mat7))/sum(conf.mat7)
+accuracy7
+
+val.set.err7 = (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
 
 # Tree (randomForest):
 rffit <- randomForest(dir~sentiment, data = train, mtry = 1)
@@ -856,7 +869,7 @@ val.set.err8 <- (conf.mat8[1,2]+conf.mat8[2,1])/(n/2)
 
 val.set.err8
 
-confusionMatrix(rfpred, test$dir)
+confusionMatrix(rfpred, test$dir)$table
 
 
 # Linear discriminant analysis (LDA)
