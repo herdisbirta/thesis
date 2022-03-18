@@ -522,7 +522,7 @@ end.df$text <- str_remove_all(end.df$text, "NA")
 rm(list = ls(pattern = "^df"))
 
 # Final data frame is "df"
-df = end.df
+df = na.omit(end.df$text)
 
 # Save
 save(df,file = "df.Rdata")
