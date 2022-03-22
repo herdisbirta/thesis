@@ -80,9 +80,19 @@ rm(list = ls(pattern = "^y20"))
 # (Yara international becomes Yara, etc.), remove "," and "."
 all.firms$Company = 
   all.firms$Company %>% 
-  gsub(" International","",.) %>% 
-  gsub("Scatec Solar","Scatec",.) %>% 
+  gsub("Norwegian Air Shuttle", "Norwegian Air",.) %>% 
+  gsub("Yara International","Yara",.) %>% 
+  gsub("AKVA Group", "AKVA",.) %>% 
+  gsub("ABG Sundal Collier Holding","ABG Sundal Collier",.) %>% 
+  gsub("Avance Gas Holding","Avance Gas",.) %>% 
+  gsub("BW Offshore Limited","BW Offshore",.) %>% 
+  gsub("Electromagnetic Geoservices", "EMGS",.) %>% 
+  gsub("InterOil Exploration and Production","Interoil",.) %>% 
   gsub("Lerøy Seafood Group","Lerøy Seafood",.) %>%
+  gsub("Questerre Energy Corporation", "Questerre",.) %>% 
+  gsub("SAS AB", "SAS", .) %>% 
+  
+  gsub("Scatec Solar","Scatec",.) %>% 
   gsub("Fjordkraft Holding", "Fjordkraft", .) %>% 
   gsub("FLEX LNG","Flex LNG",.) %>% 
   gsub("poLight","Polight",.) %>% 
@@ -95,7 +105,6 @@ all.firms$Company =
   gsub("Gaming Innovation Group", "Gaming Innovation",.) %>% 
   gsub("SpareBank 1 SR-Bank","SpareBank 1",.) %>% 
   gsub("SeaBird Exploration","Seabird Exploration",.) %>% 
-  gsub("SAS AB", "SAS", .) %>% 
   gsub("SalMar","Salmar",.) %>% 
   gsub("RAK Petroleum","Rak Petroleum",.) %>% 
   gsub("Questerre Energy Corporation","Questerre",.) %>% 
@@ -106,8 +115,6 @@ all.firms$Company =
   gsub("Havyard Group","Havyard",.) %>% 
   gsub("Högh LNG Holdings","Höegh LNG",.) %>% 
   gsub("NORBIT","Norbit",.) %>% 
-  gsub("Avance Gas Holding","Avance Gas",.) %>% 
-  gsub("ABG Sundal Collier Holding","ABG Sundal Collier",.) %>% 
   gsub("American Shipping Company","American Shipping",.) %>% 
   gsub("TGS-NOPEC Geophysical Company","TGS-Nopec",.) %>% 
   gsub("REC Silicon","Rec Silicon",.) %>% 
@@ -117,33 +124,25 @@ all.firms$Company =
   gsub("Vistin Pharma", "Vistin",.) %>% 
   gsub("Austevoll Seafood","Austevoll",.) %>% 
   gsub("Gjensidige Forsikring","Gjensidige",.) %>% 
-  gsub("InterOil Exploration and Production","Interoil",.) %>% 
   gsub("Saferoad Holding", "Saferoad",.) %>% 
   gsub("\\.","",.) %>% 
-  gsub("\\,","",.) %>% 
-  gsub(" Limited","",.)
-
-# We want "SD Standard Drilling" to be "S.D. Standard Drilling"
-all.firms$Company = 
-  all.firms$Company %>% 
-  gsub("SD Standard Drilling", "S.D. Standard Drilling",.) 
-
-# Statoil has a new name and ticker
-all.firms[21,] = list("Equinor","EQNR")
+  gsub("\\,","",.)
 
 # Remove company names that sound too similar (searching for "Aker" will give
 # results of "Aker BP" and "Aker BP" for example, "Wilh Wilhelmsen Holding"
 # has both "ser A" and "ser B")
 all.firms = 
   all.firms %>% 
-  subset(Company != "Aker" & Company != "Odfjell ser A" &
+  subset(Company != "Aker" &
+         Company != "Hafslund ser A" & Company != "Hafslund ser B" &
+           
+           Company != "Odfjell ser A" &
            Company != "Odfjell ser B" & Company != "Schibsted ser A" &
            Company != "Schibsted ser B" &
            Company != "Wilh Wilhelmsen Holding ser A" &
            Company != "Wilh Wilhelmsen Holding ser B" &
            Company != "Adevinta ser A" &
-           Company != "Solstad Offshore ser B" &
-           Company != "Hafslund ser A" & Company != "Hafslund ser B")
+           Company != "Solstad Offshore ser B")
 
 # Manually rename wrong tickers
 all.firms$ticker = 
@@ -154,7 +153,7 @@ all.firms$ticker =
   gsub("ASETEK","ASTK",.) %>% 
   gsub("AVANCE","AGAS",.) %>% 
   gsub("BEL","BELCO",.) %>% 
-  gsub("BONHRHR","BONHR",.) %>% 
+  gsub("BON","BONHR",.) %>% 
   gsub("BDRILL","BORR",.) %>% 
   gsub("BOUVET","BOUV",.) %>% 
   gsub("COV","CONTX",.) %>% 
@@ -336,7 +335,7 @@ companies = unique(stocks$Company)
 
 # Add company names more used/or changed during time period
 companies = c(companies,c("Statoil", "Marine Harvest", "Det Norske Oljeselskap",
-                          "Apptix", "Clavis Pharma", "AqualisBraemar", 
+                          "Apptix", "Clavis Pharma", 
                           "Bergen Group", "Noreco", "Team Bane", 
                           "Namsos Traffikkselskap", "PGS",
                           "PSI", "Ocean Technology"))
@@ -418,14 +417,15 @@ text$Company <-  text$Company %>%
 text$Company <- text$Company %>% 
   gsub("Statoil", "Equinor", .) %>% 
   gsub("Marine Harvest", "Mowi", .) %>% 
+  gsub("PGS", "Petroleum Geo-Services", .) %>% 
+  gsub("Noreco", "Norwegian Energy Company", .) %>% 
+  
   gsub("Det Norske Oljeselskap", "Aker BP", .) %>% 
   gsub("Apptix", "Carasent", .) %>% 
-  gsub("Clavis Pharma|AqualisBraemar", "Aqualis", .) %>% 
+  gsub("Clavis Pharma", "Aqualis", .) %>% 
   gsub("Bergen Group", "Endúr", .) %>% 
-  gsub("Noreco", "Norwegian Energy Company", .) %>% 
   gsub("Team Bane", "NRC Group", .) %>% 
   gsub("Namsos Trafikkselskap", "NTS", .) %>% 
-  gsub("PGS", "Petroleum Geo-Services", .) %>% 
   gsub("PSI", "Strongpoint", .) %>% 
   gsub("Ocean Technology", "Subsea 7", .)
 
