@@ -1,0 +1,261 @@
+﻿File name,Old/new/another name,Note:,Need to change?,Changed?
+Akastor,(Aker Solutions),"Both are in all.firms, different tickers",,
+Aker Solutions,(Akastor),"Both are in all.firms, different tickers",,
+BW LPG,,,,
+Det norske oljeselskap,(Aker BP),"Dropped, ticker inactive",,
+DNB,(DnB Nor),Name change before 2014,,
+DNO,,,,
+Fred. Olsen Energy,(Dolphin Drilling),"Dropped, ticker inactive",,
+Gjensidige Forsikring,Gjensidige,,Yes,Changed
+Golden Ocean Group,,,,
+Marine Harvest,(Mowi),"Dropped, ticker inactive (turned into MOWI)",Yes,Added
+Norwegian Air Shuttle,Norwegian Air,,Yes,Changed
+Norsk Hydro,,,,
+Opera Software,,"Dropped, ticker inactive",,
+Orkla,,,,
+Petroleum Geo-Services,"Petroleum Geo Services, PGS",,Yes,Changed+added
+Royal Caribbean Cruises,,"Dropped, ticker inactive",,
+REC Silicon,(Renewable Energy Coropration),Name change before 2014,,
+Schibsted,,,,
+Seadrill,,,,
+Storebrand,,,,
+Statoil,(Equinor),"Dropped, ticker inactive",,
+Subsea 7,(Ocean Technology),Name change before 2014,Ask Live,
+Telenor,,,,
+TGS-NOPEC Geophysical Company,TGS NOPEC,,Yes,Changed
+Yara International,Yara,,Yes,Changed
+AF Gruppen,AF Group,,Yes,Added
+Agasti Holding,,"Dropped, ticker inactive",,
+Aker,,"Remove, confuses search",Yes,Removed
+AKVA Group,Akva/AKVA,Note: change articles into lowercase to avoid this problem?,Yes,Changed
+Algeta,,"Dropped, ticker inactive",,
+American Shipping Company,,,,
+Aqualis,AqualisBraemar,"Searching for ""Aqualis"" also catches ""AqualisBraemar""",NO,Fixed
+Archer,,,,
+ABG Sundal Collier Holding,ABG Sundal Collier,,Yes,Changed
+Atea,,,,
+Austevoll Seafood,,,,
+Avance Gas Holding,Avance Gas,,Yes,Changed
+Avocet Mining,,"Dropped, ticker inactive",,
+Bakkafrost,,Bought Scottish Salmon Company in 2019,?,
+Belships,,,,
+Bionor Pharma,,"Dropped, ticker inactive",,
+Biotec Pharmacon,,"Dropped, ticker inactive",,
+Birdstep Technology,,"Dropped, ticker inactive",,
+Bonheur,,,,
+Borgestad,,,,
+Borregaard,,"Was a part of Orkla until 2012, registered ticker then",,
+BWG Homes,,"Dropped, ticker inactive",,
+BW Offshore Limited,BW Offshore,,Yes,Changed
+Cermaq,,"Dropped, ticker inactive",,
+Copeinca,,"Dropped, ticker inactive",,
+ContextVision,,,,
+Deep Sea Supply,,"Dropped, ticker inactive",,
+DOF,,,,
+Dolphin Group,,"Dropped, ticker inactive",,
+Eitzen Chemical,,"Dropped, ticker inactive",,
+Eidesvik Offshore,,,,
+Ekornes,,"Dropped, ticker inactive",,
+Eltek,,"Dropped, ticker inactive",,
+EMAS Offshore,,"Dropped, ticker inactive",,
+Electromagnetic Geoservices,EMGS,,Yes,Changed
+EMS Seven Seas,,"Dropped, ticker inactive",,
+Entra,,,,
+EVRY,,"Dropped, ticker inactive",,
+Farstad Shipping,,"Dropped, ticker inactive",,
+Frontline,,,,
+Funcom,,"Dropped, ticker inactive",,
+Goodtech,,,,
+Ganger Rolf,,"Dropped, ticker inactive",,
+Grieg Seafood,,,,
+Hexagon Composites,,,,
+Havfisk,Leroy acquired,"Dropped, ticker inactive",,
+Högh LNG Holdings,,"Dropped, ticker inactive",,
+Hafslund ser A,,"Remove, confuses search",Yes,Removed
+Hafslund ser B,,"Remove, confuses search",Yes,Removed
+Hurtigruten,,"Dropped, ticker inactive",,
+Havyard Group,Havyard,,Yes,Changed
+I.M. Skaugen,,"Dropped, ticker inactive",,
+InterOil Exploration and Production,Interoil,,Yes,Changed
+Intex Resources,,"Dropped, ticker inactive",Registered in another market - use as example?,
+Jinhui Shipping and Transportation,Jinhui Shipping,,Yes,Changed
+Kongsberg Automotive,,,,
+Kongsberg Gruppen,,,,
+Kværner,,"Dropped, ticker inactive",,
+Leroy Seafood Group,Leroy Seafood,,Yes,Changed
+Northland Resources,,"Dropped, ticker inactive (bankruptcy)",,
+Navamedic,,,,
+NEL,,,,
+Nio,,"Dropped, ticker inactive",,
+Nickel Mountain Group,,"Dropped, ticker inactive",,
+Norwegian Car Carriers,,"Dropped, ticker inactive (delisted in 2014)",,
+Nordic Semiconductor,,,,
+Northern Offshore,,"Dropped, ticker inactive",,
+Norwegian Energy Company,Noreco,Add,Yes,Added
+Norwegian Property,,,,
+Norway Royal Salmon,,,,
+Norske Skogindustrier,Norske Skog (NSKOG ticker),"Dropped, new name+ticker in all.firms",,
+Ocean Yield,,"Dropped, ticker inactive",,
+Odfjell ser A,,"Remove, confuses search",Yes,Removed
+Odfjell ser B,,"Remove, confuses search",Yes,Removed
+Odfjell Drilling,,,,
+Olav Thon Eiendomsselskap,,,,
+Oceanteam Shipping,Oceanteam,,Yes,Changed
+Petrolia,,Ticker wrong in one place and right in another,No,
+Panoro Energy,,,,
+Photocure,,,,
+Polarcus,,"Dropped, ticker inactive",,
+Protector Forsikring,,,,
+Prosafe,,,,
+Questerre Energy Corporation,Questerre,,Yes,Changed
+Q-Free,Q Free,,Yes,Changed
+RAK Petroleum,,,,
+Reach Subsea,,"Remove, confuses search for Subsea, also only 7 articles in our categories between 2014 and 2019",Yes,Removed
+REC Solar,,"Dropped, ticker inactive",,
+Rocksource,,"Dropped, ticker inactive",,
+SalMar,,,,
+SAS AB,SAS,,Yes,Changed
+Selvaag Bolig,,,,
+Seabird Exploration,(Green Energy Group),Name change after 2019,,
+Scana Industrier,,"Dropped, ticker inactive",,
+Sevan Marine,,"Dropped, ticker inactive",,
+Sevan Drilling,,"Dropped, ticker inactive",,
+Siem Offshore,,,,
+Stolt-Nielsen,Stolt Nielsen,,Yes,Changed
+Solstad Offshore,Solstad Farstad,Changed from Solstad Farstad to Solstad Offshore on 3rd Oct 2018,Yes,Added
+Songa Offshore,,"Dropped, ticker inactive",,
+Spectrum,,"Dropped, ticker inactive",,
+SpareBank 1,,"Remove, confuses search (we cannot search for SpareBank 1 since numerics are
+removed from articles and a lot of banks have ""SpareBank"" in their name",Yes,Removed
+The Scottish Salmon Company,,"Dropped, ticker inactive",,
+Scatec,(Scatec Solar),"Searching for ""Scatec"" also catches ""Scatec Solar""",No,
+Storm Real Estate,,"Dropped, ticker inactive",,
+Telio Holding,,"Dropped, ticker inactive",,
+Tanker Investments,,"Dropped, ticker inactive",,
+Tomra Systems,TOMRA/Tomra,,Yes,Changed
+TTS Group,,"Dropped, ticker inactive",,
+Vardia Insurance Group,,"Dropped, ticker inactive",,
+Veidekke,,,,
+Vizrt,,"Dropped, ticker inactive",,
+Veripos,,"Dropped, ticker inactive",,
+Voss Veksel- og Landmandsbank,"Voss Veksel og Landmandsbank
+Vekselbanken",,Yes,Changed+added
+Western Bulk,,,,
+Weifa,,"Dropped, ticker inactive",,
+Wentworth Resources,,"Dropped, ticker inactive",,
+Wilh Wilhelmsen,,,,
+Wilh Wilhelmsen Holding ser A,,"Remove, confuses search",Yes,Removed
+Wilh Wilhelmsen Holding ser B,,"Remove, confuses search",Yes,Removed
+XXL,,,,
+Zalaris,,,,
+Arendals Fossekompani,,,,
+AGR Group,,"Dropped, ticker inactive",,
+Apptix,,"Dropped, ticker inactive",,
+Asetek,,,,
+Atlantic Petroleum,,"Dropped, ticker inactive",,
+Bergen Group,Endúr,"Add ""Bergen Group"" to ""Endúr""",Yes,Added
+Blom,,"Dropped, ticker inactive",,
+Byggma,,,,
+Bouvet,,,,
+Comrod Communication,,"Dropped, ticker inactive",,
+Data Respons,,"Dropped, ticker inactive",,
+Domstein,,"Dropped, ticker inactive",,
+Fred Olsen Production,,"Dropped, delisted beginning of 2014",,
+Gyldendal,,,,
+Havila Shipping,,,,
+Infratek,,"Dropped, ticker inactive",,
+Itera,,,,
+Kitron,,,,
+Medistim,,,,
+Napatech,,,,
+NTS,"NTS Group, Namsos Traffikkselskap",,Yes,Changed+added
+Polaris Media,,,,
+PSI Group,(Under StrongPoint ticker since 2015),"Dropped, ticker inactive",,
+RenoNorden,,"Dropped, ticker inactive",,
+Repant,,"Dropped, ticker inactive",,
+GC Rieber Shipping,,,,
+Skiens AktiemOlle,,,,
+Solvang,,"Dropped, ticker inactive",,
+Siem Shipping,,"Dropped, ticker inactive",,
+Tide,,"Dropped, ticker inactive",,
+Wilson,,,,
+Schibsted ser A,,"Remove, confuses search",Yes,Removed
+Schibsted ser B,,"Remove, confuses search",Yes,Removed
+Europris,,,,
+Gaming Innovation,Gaming Innovation,,Yes,Changed
+Idex,,,,
+Kid,,,,
+Multiconsult,,,,
+Nordic Nanovector,,,,
+Next Biometrics,,,,
+NextGenTel Holding,,"Dropped, ticker inactive",,
+NRC Group,Created by merger of Blom+Team Bane,"Don't think it's right to add just one of them to the searches, and adding both is more complex (and not worth it)",,
+Skandiabanken,,"Dropped, ticker inactive",,
+Strongpoint,PSI,PSI merged with Strongpoint in 2015,Yes,Added
+Thin Film Electronics,,"Dropped, ticker inactive",,
+Team Tankers International,,"Dropped, ticker inactive",,
+Aker BP,,,,
+Axactor,,,,
+B2Holding,,"Remove, number in name is removed in articles",Yes,Removed
+Bulk Invest,,"Dropped, ticker inactive",,
+Golden Ocean REG S,,"Dropped, ticker inactive",,
+Hiddn Solutions,,"Dropped, ticker inactive",,
+Incus Investor,,"Dropped, ticker inactive",,
+Insr Insurance,Vardia Insurance,,Yes,Added
+Link Mobility Group,Link Mobility,,Yes,Changed
+Norwegian Finans Holding,,"Dropped, ticker inactive",,
+Pareto Bank,,,,
+Solon Eiendom,,"Dropped, ticker inactive",,
+Techstep,,,,
+Treasure,,,,
+Arcus,,"Dropped, ticker inactive",,
+Cxense,,"Dropped, ticker inactive",,
+Solstad Offshore ser B,,"Remove, confuses search",Yes,Removed
+Borr Drilling,,,,
+BerGenBio,,,,
+Crayon,,,,
+Element,,"Dropped, ticker inactive",,
+Fjord1,,"Dropped, ticker inactive",,
+FLEX LNG,,,,
+Infront,,"Dropped, ticker inactive",,
+Komplett Bank,,,,
+Saferoad Holding,,"Dropped, ticker inactive",,
+Sbanken,Skandiabanken before 2017,,Yes,Added
+SD Standard Drilling,SD Standard,,Yes,Changed
+Self Storage Group,,,,
+Targovax,,,,
+Webstep,,,,
+Wallenius Wilhelmsen Logistics,,"Dropped, ticker inactive",,
+Equinor,Statoil,,Yes,Added
+Mowi,Marine Harvest,,Yes,Added
+Awilco Drilling,,,,
+Dolphin Drilling,,"Dropped, ticker inactive",,
+Elkem,,,,
+Fjordkraft Holding,Fjordkraft,,Yes,Changed
+MPC Container Ships,,,,
+Magseis Fairfield,,,,
+Northern Drilling,,,,
+Otello Corporation,Opera Software,,Yes,Added
+PCI Biotech Holding,PCI Biotech,,Yes,Changed
+Salmones Camanchaca,,,,
+Star Bulk Carriers,,"Dropped, ticker inactive",,
+Shelf Drilling,,,,
+Vistin Pharma,Vistin,,Yes,Changed
+Wallenius Wilhelmsen,,,,
+Wentworth Resources,,"Dropped, ticker inactive",,
+Magnora,,,,
+poLight,,,,
+Petrolia,,,,
+Adevinta,"(Adevinta is ""spun off"" from Schibsted)",,,
+"Adevinta ser, A",,"Remove, confuses search",Yes,Removed
+Carasent,Apptix,Carasent until 2019,Yes,Added
+Endúr,Bergen Group,Already added,,
+Nekkar,TTS Group,,Yes,Added
+NORBIT,,,,
+Norske Skog,,"Drop because ""norske skog"" is also a term? Ask Live",,?
+OKEA,,,,
+SATS,,,,
+Star Bulk Carriers,,"Dropped, ticker inactive",,
+Scanship Holding,,"Dropped, ticker inactive",,
+Ultimovacs,,,,
+TietoEVRY,Tieto (before 2019),"Change to ""Tieto"" since it will also catch ""TietoEVRY""",Yes,Changed
