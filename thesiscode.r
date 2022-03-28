@@ -199,6 +199,7 @@ stocks = all.stocks$df.tickers
 # Finalizing the company list
 # Add company name (for searching purposes)
 stocks = left_join(stocks,all.firms,by="ticker")
+stocks$Company = tolower(stocks$Company)
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
@@ -421,21 +422,21 @@ text$Company <-  text$Company %>%
 
 # Change old company names to new company names 
 text$Company <- text$Company %>% 
-  gsub("Statoil", "Equinor", .) %>% 
-  gsub("Marine Harvest", "Mowi", .) %>% 
-  gsub("PGS", "Petroleum Geo Services", .) %>% 
-  gsub("Noreco", "Norwegian Energy Company", .) %>% 
-  gsub("AF Group","AF Gruppen",.) %>% 
-  gsub("Solstad Farstad","Solstad Offshore",.) %>% 
-  gsub("Vekselbanken","Voss Veksel og Landmandsbank",.) %>% 
-  gsub("Bergen Group", "Endúr", .) %>% 
-  gsub("Vardia Insurance","Insr Insurance",.) %>% 
-  gsub("Skandiabanken","Sbanken",.) %>% 
-  gsub("PSI", "Strongpoint", .) %>% 
-  gsub("Opera Software","Otello",.) %>% 
-  gsub("Apptix", "Carasent", .) %>% 
-  gsub("TTS Group","Nekkar",.) %>% 
-  gsub("Namsos Trafikkselskap", "NTS Group", .)
+  gsub("statoil", "equinor", .) %>% 
+  gsub("marine Harvest", "mowi", .) %>% 
+  gsub("pgs", "petroleum geo services", .) %>% 
+  gsub("noreco", "norwegian energy company", .) %>% 
+  gsub("af group","af gruppen",.) %>% 
+  gsub("solstad farstad","solstad offshore",.) %>% 
+  gsub("vekselbanken","voss veksel og landmandsbank",.) %>% 
+  gsub("bergen group", "endúr", .) %>% 
+  gsub("vardia insurance","insr insurance",.) %>% 
+  gsub("skandiabanken","sbanken",.) %>% 
+  gsub("psi", "strongpoint", .) %>% 
+  gsub("opera software","otello",.) %>% 
+  gsub("apptix", "carasent", .) %>% 
+  gsub("tts group","nekkar",.) %>% 
+  gsub("namsos trafikkselskap", "nts group", .)
 
 # Create row with date and company to identify instances where there are more than 1
 # article about a company on a specific date:
@@ -508,30 +509,12 @@ df7b = df6b[duplicated(df6b$datecomp),]
 # rows of 7 articles per day)
 df67 = full_join(df56,df7,by="datecomp")
 
-# Split duplicated rows (df7b) into df8 (non-duplicated rows) and df8b (duplicated rows)
-# This is done to take into account 8 articles per company per day
-df8 = df7b[!duplicated(df7b$datecomp),]
-df8b = df7b[duplicated(df7b$datecomp),]
-
-# Combine df67 (non-duplicated rows of 1, 2, 3, 4, 5, 6 or 7 articles per day) with df8 (non-duplicated
-# rows of 8 articles per day)
-df78 = full_join(df67,df8,by="datecomp")
-
-# Split duplicated rows (df8b) into df9 (non-duplicated rows) and df9b (duplicated rows)
-# This is done to take into account 9 articles per company per day
-df9 = df8b[!duplicated(df8b$datecomp),]
-df9b = df8b[duplicated(df8b$datecomp),]
-
-# Combine df78 (non-duplicated rows of 1, 2, 3, 4, 5, 6, 7 or 8 articles per day) with df9 (non-duplicated
-# rows of 9 articles per day)
-df89 = full_join(df78,df9,by="datecomp")
-
 # Are there still duplicate dates?
-length(which(duplicated(df9b$datecomp)==TRUE))    # We have reached the end
+length(which(duplicated(df7b$datecomp)==TRUE))    # We have reached the end
 
-# Combine df89 (non-duplicated rows of 1,2,3,4,5,6,7,8 or 9 articles per day)
-# with df9b (final non-duplicated rows)
-df.end = full_join(df89,df9b,by="datecomp")
+# Combine df67(non-duplicated rows of 1,2,3,4,5,6,7 articles per day)
+# with df7b (final non-duplicated rows)
+df.end = full_join(df67,df7b,by="datecomp")
 
 # Combine columns (note that combining without changing NA columns results in some
 # elements in the text-column end with "NA" or "NANANANANA" or something similar)
@@ -539,7 +522,6 @@ df.end =
   df.end %>% 
   mutate("text" = 
            paste0(text.x,text.y,text.x.x,text.y.y,text.x.x.x,text.y.y.y,
-                  text.x.x.x.x,text.y.y.y.y,text.x.x.x.x.x,text.y.y.y.y.y,
                   sep=" ")) %>% 
   select(datecomp,text,"date" = date.x,"Company" = Company.x)
 
@@ -552,7 +534,7 @@ end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks 
 # Remove NA at end of text
 end.df$text <- str_remove_all(end.df$text, "NA")
 
-# Remove all my unnecessary dfs
+# Remove all unnecessary dfs
 rm(list = ls(pattern = "^df"))
 
 # Remove NAs
@@ -602,9 +584,6 @@ toks = corpus %>%
 #save(LM.norsk, file = "LMNorsk.RData")
 
 load("LMNorsk.RData")
-
-# There is a Norwegian alternative of a sentiment dictionary from UiO
-# which is an alternative if we need it
 
 # Sum negative/positive words
 
@@ -841,7 +820,7 @@ gampred <- predict(gamfit, test)
 
 conf.mat7 <- table(test$dir, gampred)
 
-conf.mat7
+conf.mat7 # ???
 
 accuracy7 <- sum(diag(conf.mat7))/sum(conf.mat7)
 
