@@ -633,8 +633,6 @@ df$sentiment = score
 
 # CLASSIFICATION:
 
-# Logistic classification:
-
 # Remove days with no change (better accuracy)
 
 df <- df[!df$dir=="no change",]
@@ -659,33 +657,14 @@ train = df[1:n.train,]
 
 test = df[n.test:n,]
 
-# with full data
-logreg1 <- glm(dir~sentiment, data = df, family = binomial())
-
-summary(logreg1)
-
-logpred1 <- predict(logreg1, type = "response")
-
-conf.mat1 <- table(df$dir, logpred1 > 0.5)
-
-conf.mat1
-
-accuracy1 <- sum(diag(conf.mat1))/sum(conf.mat1)
-
-accuracy1
-
-val.set.err1 <- (conf.mat1[1,2]+conf.mat1[2,1])/(n/2)
-
-val.set.err1
-
-# with train data
+# Logistic regression:
 logreg2 <- glm(dir~sentiment, data = train, family = binomial())
 
 summary(logreg2)
 
 logpred2 <- predict(logreg2, test, type = "response")
 
-conf.mat2 <- table(test$dir, logpred2 > 0.5)
+conf.mat2 <- table(test$dir, logpred2)
 
 conf.mat2
 
@@ -754,7 +733,7 @@ ytest = test$dir
 
 x = cbind(xtrain, ytrain)
 
-fitControl = trainControl(method = "repeatedcv", number=20)
+fitControl = trainControl(method = "repeatedcv", number=10)
 
 gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=fitControl,
                 verbose=F)
@@ -818,19 +797,6 @@ summary(gamfit)
 
 gampred <- predict(gamfit, test)
 
-conf.mat7 <- table(test$dir, gampred)
-
-conf.mat7 # ???
-
-accuracy7 <- sum(diag(conf.mat7))/sum(conf.mat7)
-
-accuracy7
-
-val.set.err7 <- (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
-
-val.set.err7
-
-# I think this is what we want:
 conf.mat7 = confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)$table
 conf.mat7
 
@@ -915,48 +881,3 @@ final.table = data.frame(method,
                          "Validation set error" = vse.all)
 ###############################################################################
 
-
-# REGRESSION:
-
-# Linear regression:
-lmreg <- lm(av.price~sentiment, data = train)
-
-summary(lmreg)
-
-predlm <- predict(lmreg, test)
-
-conf.mat4 <- table(test$av.price, predlm)
-
-conf.mat4
-
-accuracy4 <- sum(diag(conf.mat4))/sum(conf.mat4)
-
-accuracy4
-
-val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
-
-val.set.err4
-
-# SVM regression:
-svmreg <- svm(av.price~sentiment, data = train)
-
-summary(svmreg)
-
-predsvmreg <- predict(svmreg, test)
-
-conf.mat5 <- table(test$av.price, predsvmreg)
-
-conf.mat5
-
-accuracy5 <- sum(diag(conf.mat5))/sum(conf.mat5)
-
-accuracy5
-
-val.set.err5 <- (conf.mat5[1,2]+conf.mat5[2,1])/(n/2)
-
-val.set.err5
-
-# Horrible results with both lm and svm regression, better results with
-# classification
-
-###############################################################################
