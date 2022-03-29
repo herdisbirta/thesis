@@ -657,8 +657,9 @@ train = df[1:n.train,]
 
 test = df[n.test:n,]
 
-# Cross validation method:
-ctrl <- trainControl(method = "repeatedcv", repeats = 10)
+# Cross validation method: 10-fold cross validation
+ctrl <- trainControl(method = "cv", number = 10)
+
 
 # Logistic regression:
 set.seed(1)
@@ -668,9 +669,9 @@ logreg <- train(dir~sentiment, data = train, method = "glm", family = binomial,
 
 logpred <- predict(logreg, test)
 
-conf.mat <- table(test$dir, logpred)
+confusionMatrix(logpred, test$dir)[[2]]
 
-conf.mat
+conf.mat <- confusionMatrix(logpred, test$dir)[[2]]
 
 accuracy <- sum(diag(conf.mat))/sum(conf.mat)
 
@@ -680,20 +681,18 @@ val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 
 val.set.err
 
-confusionMatrix(logpred, test$dir)
-
 
 # SVM classification:
 set.seed(1)
 
-svmreg <- train(dir~sentiment, data = train, method = "svmLinear", 
+svmreg <- train(dir~sentiment, data = train, method = "svmLinear",
                  trControl = ctrl)
 
 svmpred <- predict(svmreg, test)
 
-conf.mat2 <- table(test$dir, svmpred)
+confusionMatrix(svmpred, test$dir)
 
-conf.mat2
+conf.mat2 <- confusionMatrix(svmpred, test$dir)[[2]]
 
 accuracy2 <- sum(diag(conf.mat2))/sum(conf.mat2)
 
@@ -702,8 +701,6 @@ accuracy2
 val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 
 val.set.err2
-
-confusionMatrix(svmpred, test$dir)
 
 
 # GBM classification:
@@ -726,9 +723,9 @@ gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=ctrl,
 
 gbmpred = predict(gbmfit, xtest)
 
-conf.mat3 <- table(test$dir, gbmpred)
+confusionMatrix(gbmpred, test$dir)
 
-conf.mat3
+conf.mat3 <- confusionMatrix(gbmpred, test$dir)[[2]]
 
 accuracy3 <- sum(diag(conf.mat3))/sum(conf.mat3)
 
@@ -738,7 +735,6 @@ val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 
 val.set.err3
 
-confusionMatrix(gbmpred, test$dir)
 
 # K-Nearest Neighbors:
 set.seed(1)
@@ -747,9 +743,9 @@ knn <- train(dir~sentiment, data = train, method = "knn", trControl = ctrl)
 
 knnpred <- predict(knn, test)
 
-conf.mat4 <- table(test$dir, knnpred)
+confusionMatrix(knnpred, test$dir)
 
-conf.mat4
+conf.mat4 <- confusionMatrix(knnpred, test$dir)[[2]]
 
 accuracy4 <- sum(diag(conf.mat4))/sum(conf.mat4)
 
@@ -759,7 +755,6 @@ val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 
 val.set.err4
 
-confusionMatrix(knnpred, test$dir)
 
 # Overview of results from logistic, SVM, GBM and KNN:
 method = c("Logistic","SVM", "GBM","KNN")
@@ -774,7 +769,7 @@ final.table = data.frame(method,
 
 ###############################################################################
 
-# EXTRA METHODS IF NEEDED:
+# EXTRA CLASSIFICATION METHODS IF NEEDED:
 
 # Naive Bayes:
 nbfit <- naiveBayes(dir~sentiment, data = train)
