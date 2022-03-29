@@ -24,6 +24,7 @@ library(class)
 library(gam)
 library(tree)
 library(randomForest)
+library(kernlab)
 
 # STOCK PRICE RETRIEVAL
 # List of all registered companies
@@ -644,8 +645,7 @@ df = na.omit(df)
 df$dir <- as.factor(df$dir)
 
 # Split data:
-
-set.seed(123)
+set.seed(1)
 
 n = nrow(df)
 
@@ -657,14 +657,41 @@ train = df[1:n.train,]
 
 test = df[n.test:n,]
 
+# Cross validation method:
+ctrl <- trainControl(method = "repeatedcv", repeats = 10)
+
 # Logistic regression:
-logreg2 <- glm(dir~sentiment, data = train, family = binomial())
+set.seed(1)
 
-summary(logreg2)
+logreg <- train(dir~sentiment, data = train, method = "glm", family = binomial, 
+                trControl = ctrl)
 
-logpred2 <- predict(logreg2, test, type = "response")
+logpred <- predict(logreg, test)
 
-conf.mat2 <- table(test$dir, logpred2)
+conf.mat <- table(test$dir, logpred)
+
+conf.mat
+
+accuracy <- sum(diag(conf.mat))/sum(conf.mat)
+
+accuracy
+
+val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
+
+val.set.err
+
+confusionMatrix(logpred, test$dir)
+
+
+# SVM classification:
+set.seed(1)
+
+svmreg <- train(dir~sentiment, data = train, method = "svmLinear", 
+                 trControl = ctrl)
+
+svmpred <- predict(svmreg, test)
+
+conf.mat2 <- table(test$dir, svmpred)
 
 conf.mat2
 
@@ -676,37 +703,30 @@ val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 
 val.set.err2
 
-confusionMatrix(factor(ifelse(logpred2 > 0.5, "up", "down")), test$dir)
-
-# k-fold cross-validation
-all.cv = rep(NA, 10)
-
-for (i in 1:10) {
-  logfit = glm(dir~sentiment, data=df, family = binomial())
-  all.cv[i] = cv.glm(df, logfit, K=10)$delta[2]
-}
-
-plot(1:10, all.cv, lwd=2, type="l", xlab="df", ylab="CV error")
-
-# ROC
-rocpred <- prediction(logpred2, test$dir)
-
-rocperf <- performance(rocpred, "tpr", "fpr")
-
-plot(rocperf)
+confusionMatrix(svmpred, test$dir)
 
 
-# SVM classification:
-tunesvm <- tune(svm, dir~sentiment, data = train, kernel = "linear",
-                ranges = list(cost = c(0.001, 0.01, 0.1, 1, 10, 100, 1000)))
+# GBM classification:
+set.seed(1)
 
-summary(tunesvm)
+xtrain = train[,8:9]
 
-bestsvm <- tunesvm$best.model
+ytrain = train$dir
 
-svmpred <- predict(bestsvm, test)
+xtest = test[,8:9]
 
-conf.mat3 <- table(test$dir, svmpred)
+ytest = test$dir
+
+x = cbind(xtrain, ytrain)
+
+set.seed(1)
+
+gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=ctrl,
+                verbose=F)
+
+gbmpred = predict(gbmfit, xtest)
+
+conf.mat3 <- table(test$dir, gbmpred)
 
 conf.mat3
 
@@ -718,29 +738,16 @@ val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 
 val.set.err3
 
-confusionMatrix(svmpred, test$dir)
+confusionMatrix(gbmpred, test$dir)
 
-# Linear better accuracy than radial and polynomial
+# K-Nearest Neighbors:
+set.seed(1)
 
-# GBM classification:
-xtrain = train[,8:9]
+knn <- train(dir~sentiment, data = train, method = "knn", trControl = ctrl)
 
-ytrain = train$dir
+knnpred <- predict(knn, test)
 
-xtest = test[,8:9]
-
-ytest = test$dir
-
-x = cbind(xtrain, ytrain)
-
-fitControl = trainControl(method = "repeatedcv", number=10)
-
-gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=fitControl,
-                verbose=F)
-
-gbmpred = predict(gbmfit, xtest)
-
-conf.mat4 <- table(test$dir, gbmpred)
+conf.mat4 <- table(test$dir, knnpred)
 
 conf.mat4
 
@@ -752,12 +759,29 @@ val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 
 val.set.err4
 
-confusionMatrix(gbmpred, test$dir)
+confusionMatrix(knnpred, test$dir)
 
-# K-Nearest Neighbors:
-knnpred <- knn(as.matrix(train$sentiment), as.matrix(test$sentiment), train$dir, k=1)
+# Overview of results from logistic, SVM, GBM and KNN:
+method = c("Logistic","SVM", "GBM","KNN")
 
-conf.mat5 <- table(test$dir, knnpred)
+acc.all = c(accuracy, accuracy2, accuracy3, accuracy4)
+
+vse.all = c(val.set.err, val.set.err2, val.set.err3, val.set.err4)
+
+final.table = data.frame(method,
+                         "Accuracy" = acc.all,
+                         "Validation set error" = vse.all)
+
+###############################################################################
+
+# EXTRA METHODS IF NEEDED:
+
+# Naive Bayes:
+nbfit <- naiveBayes(dir~sentiment, data = train)
+
+nbpred <- predict(nbfit, test)
+
+conf.mat5 <- table(test$dir, nbpred)
 
 conf.mat5
 
@@ -769,25 +793,6 @@ val.set.err5 <- (conf.mat5[1,2]+conf.mat5[2,1])/(n/2)
 
 val.set.err5
 
-confusionMatrix(knnpred, test$dir)
-
-# Naive Bayes:
-nbfit <- naiveBayes(dir~sentiment, data = train)
-
-nbpred <- predict(nbfit, test)
-
-conf.mat6 <- table(test$dir, nbpred)
-
-conf.mat6
-
-accuracy6 <- sum(diag(conf.mat6))/sum(conf.mat6)
-
-accuracy6
-
-val.set.err6 <- (conf.mat6[1,2]+conf.mat6[2,1])/(n/2)
-
-val.set.err6
-
 confusionMatrix(nbpred, test$dir)
 
 # Generalized additive models:
@@ -797,30 +802,32 @@ summary(gamfit)
 
 gampred <- predict(gamfit, test)
 
-conf.mat7 = confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)$table
-conf.mat7
+confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)
 
-accuracy7 = sum(diag(conf.mat7))/sum(conf.mat7)
-accuracy7
+conf.mat6 = confusionMatrix(factor(ifelse(gampred > 1.5, "up", "down")), test$dir)$table
+conf.mat6
 
-val.set.err7 = (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
+accuracy6 = sum(diag(conf.mat6))/sum(conf.mat6)
+accuracy6
+
+val.set.err6 = (conf.mat6[1,2]+conf.mat6[2,1])/(n/2)
 
 # Tree (randomForest):
 rffit <- randomForest(dir~sentiment, data = train, mtry = 1)
 
 rfpred <- predict(rffit, test)
 
-conf.mat8 <- table(test$dir, rfpred)
+conf.mat7 <- table(test$dir, rfpred)
 
-conf.mat8
+conf.mat7
 
-accuracy8 <- sum(diag(conf.mat8))/sum(conf.mat8)
+accuracy7 <- sum(diag(conf.mat7))/sum(conf.mat7)
 
-accuracy8
+accuracy7
 
-val.set.err8 <- (conf.mat8[1,2]+conf.mat8[2,1])/(n/2)
+val.set.err7 <- (conf.mat7[1,2]+conf.mat7[2,1])/(n/2)
 
-val.set.err8
+val.set.err7
 
 confusionMatrix(rfpred, test$dir)$table
 
@@ -836,13 +843,13 @@ lda.pred = predict (lda.fit, test)
 lda.class = lda.pred$class
 
 # Confusion matrix
-conf.mat9 = table(test$dir, lda.class)
+conf.mat8 = table(test$dir, lda.class)
 
 # Accuracy
-accuracy9 = sum(diag(conf.mat9))/sum(conf.mat9)
+accuracy8 = sum(diag(conf.mat8))/sum(conf.mat8)
 
 # Val set error
-val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
+val.set.err8 <- (conf.mat8[1,2]+conf.mat8[2,1])/(n/2)
 
 confusionMatrix(lda.class, test$dir)
 
@@ -855,13 +862,13 @@ qda.fit
 qda.class = predict(qda.fit, test)$class
 
 # Confusion matrix
-conf.mat10 = table(test$dir, qda.class)
+conf.mat9 = table(test$dir, qda.class)
 
 # Accuracy
-accuracy10 = sum(diag(conf.mat10))/sum(conf.mat10)
+accuracy9 = sum(diag(conf.mat9))/sum(conf.mat9)
 
 # Val set error
-val.set.err10 <- (conf.mat10[1,2]+conf.mat10[2,1])/(n/2)
+val.set.err9 <- (conf.mat9[1,2]+conf.mat9[2,1])/(n/2)
 
 confusionMatrix(qda.class, test$dir)
 
@@ -869,12 +876,12 @@ confusionMatrix(qda.class, test$dir)
 method = c("Logistic","SVM", "GBM","KNN", "Naive bayes", "GAM", 
            "RandomForest", "LDA", "QDA")
 
-acc.all = c(accuracy2, accuracy3, accuracy4, accuracy5, accuracy6,
-            accuracy7, accuracy8, accuracy9, accuracy10)
+acc.all = c(accuracy, accuracy2, accuracy3, accuracy4, accuracy5,
+            accuracy6, accuracy7, accuracy8, accuracy9)
 
-vse.all = c(val.set.err2, val.set.err3, val.set.err4, val.set.err5, 
-            val.set.err6, val.set.err7, val.set.err8, val.set.err9,
-            val.set.err10)
+vse.all = c(val.set.err, val.set.err2, val.set.err3, val.set.err4, 
+            val.set.err5, val.set.err6, val.set.err7, val.set.err8,
+            val.set.err9)
 
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
