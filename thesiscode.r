@@ -718,14 +718,13 @@ x = cbind(xtrain, ytrain)
 
 set.seed(1)
 
-gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=ctrl,
-                verbose=F)
+gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=ctrl)
 
 gbmpred = predict(gbmfit, xtest)
 
-confusionMatrix(gbmpred, test$dir)
+confusionMatrix(gbmpred, ytest)
 
-conf.mat3 <- confusionMatrix(gbmpred, test$dir)[[2]]
+conf.mat3 <- confusionMatrix(gbmpred, ytest)[[2]]
 
 accuracy3 <- sum(diag(conf.mat3))/sum(conf.mat3)
 
