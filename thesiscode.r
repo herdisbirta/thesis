@@ -189,9 +189,10 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               thresh.bad.data = 0)
 
 
-# How many companies do we have? (156)
-# We originally had 247 tickers for companies,some tickers didn't have
-# any info (deregistered or acquired by other companies and therefore no info)
+# How many companies do we have? (163)
+# We originally had 258 companies and tickers, some tickers didn't have
+# any info (deregistered or acquired by other companies and therefore no info),
+# some companies had to be removed to eliminate possible confusion when searching
 sum(ifelse(all.stocks$df.control$threshold.decision=="KEEP",1,0))
 
 # Convert stock information into a data frame
@@ -200,7 +201,7 @@ stocks = all.stocks$df.tickers
 # Finalizing the company list
 # Add company name (for searching purposes)
 stocks = left_join(stocks,all.firms,by="ticker")
-stocks$Company = tolower(stocks$Company)
+stocks$Company = stocks$Company
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
@@ -215,9 +216,6 @@ companies = c(companies,c("Statoil", "Marine Harvest",
                           "Apptix","Noreco",
                           "TTS Group","PGS",
                           "Namsos Traffikkselskap"))
-
-# Change companies list to lowercase
-companies = tolower(companies)
 
 # Calculate a daily price measure
 for(i in 1:nrow(stocks)){
@@ -234,6 +232,10 @@ stocks =
 stocks$diff = stocks$av.price - lag(stocks$av.price)
 stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
 
+# Make sure that the last price observation of Akastor and the first observation
+# of Aker BP (for example) are not calculated together, first observation of each
+# company gives NA in the dir-column
+# Note: gives error, still works
 for(i in 2:nrow(stocks)){
   if(stocks$Company[i] != stocks$Company[i-1])
     stocks$dir[i] = NA
@@ -345,8 +347,6 @@ rm(list = ls())
 load("text.Rdata")
 load("stocks.Rdata")
 
-# Change articles to lowercase
-text$text = str_to_lower(text$text)
 
 # 1. Which companies are never mentioned?
 # Create data frame with "companies" column and "mentioned" column
@@ -423,21 +423,21 @@ text$Company <-  text$Company %>%
 
 # Change old company names to new company names 
 text$Company <- text$Company %>% 
-  gsub("statoil", "equinor", .) %>% 
-  gsub("marine Harvest", "mowi", .) %>% 
-  gsub("pgs", "petroleum geo services", .) %>% 
-  gsub("noreco", "norwegian energy company", .) %>% 
-  gsub("af group","af gruppen",.) %>% 
-  gsub("solstad farstad","solstad offshore",.) %>% 
-  gsub("vekselbanken","voss veksel og landmandsbank",.) %>% 
-  gsub("bergen group", "endúr", .) %>% 
-  gsub("vardia insurance","insr insurance",.) %>% 
-  gsub("skandiabanken","sbanken",.) %>% 
-  gsub("psi", "strongpoint", .) %>% 
-  gsub("opera software","otello",.) %>% 
-  gsub("apptix", "carasent", .) %>% 
-  gsub("tts group","nekkar",.) %>% 
-  gsub("namsos trafikkselskap", "nts group", .)
+  gsub("Statoil", "Equinor", .) %>% 
+  gsub("Marine Harvest", "Mowi", .) %>% 
+  gsub("PGS", "Petroleum Geo Services", .) %>% 
+  gsub("Noreco", "Norwegian Energy Company", .) %>% 
+  gsub("AF Group","AF Gruppen",.) %>% 
+  gsub("Solstad Farstad","Solstad Offshore",.) %>% 
+  gsub("Vekselbanken","Voss Veksel og Landmandsbank",.) %>% 
+  gsub("Bergen Group", "Endúr", .) %>% 
+  gsub("Vardia Insurance","Insr Insurance",.) %>% 
+  gsub("Skandiabanken","Sbanken",.) %>% 
+  gsub("PSI", "Strongpoint", .) %>% 
+  gsub("Opera Software","Otello",.) %>% 
+  gsub("Apptix", "Carasent", .) %>% 
+  gsub("TTS Group","Nekkar",.) %>% 
+  gsub("Namsos Trafikkselskap", "NTS Group", .)
 
 # Create row with date and company to identify instances where there are more than 1
 # article about a company on a specific date:
