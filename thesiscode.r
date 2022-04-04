@@ -718,7 +718,8 @@ x = cbind(xtrain, ytrain)
 
 set.seed(1)
 
-gbmfit = train(dir~sentiment, data=xtrain, method="gbm", trControl=ctrl)
+gbmfit = train(dir~sentiment, data=xtrain, method="gbm", 
+               distribution = "bernoulli", trControl=ctrl)
 
 gbmpred = predict(gbmfit, xtest)
 
@@ -732,10 +733,10 @@ accuracy3
 
 val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 
-val.set.err3
+val.set.err3 
 
 
-# K-Nearest Neighbors:
+# K-Nearest Neighbors: 
 set.seed(1)
 
 knn <- train(dir~sentiment, data = train, method = "knn", trControl = ctrl)
