@@ -201,7 +201,7 @@ stocks = all.stocks$df.tickers
 # Finalizing the company list
 # Add company name (for searching purposes)
 stocks = left_join(stocks,all.firms,by="ticker")
-stocks$Company = stocks$Company
+stocks$Company = tolower(stocks$Company)
 
 # Get the names of the companies we have stock price data for
 companies = unique(stocks$Company)
@@ -225,7 +225,7 @@ for(i in 1:nrow(stocks)){
 # Only select columns we are interested in
 stocks = 
   stocks %>% 
-  select(Company,ticker,"date"=ref.date,av.price)
+  select(Company,ticker,"date"=ref.date,price.close,price.open,av.price)
 
 
 # Create direction-column
@@ -267,12 +267,12 @@ for (file in files) {
   date.list <- append(date.list, Dates)
 }
 
-# Are there duplicate urls?
+# Are there duplicated URLs?
 nrow((distinct(as.data.frame(url.list))))
 
 which(duplicated(url.list) == TRUE)
 
-# Removing wrong/not working URLs)
+# Removing wrong/not working URLs
 grep("notis", url.list)
 grep("https://www.dn.no/marked/2-1-", url.list)
 grep("https://www.dn.no/arbeidsliv/2-1", url.list)
@@ -286,46 +286,41 @@ date.list <- date.list[-c(500, 1015, 1016, 4709, 4728, 4819, 5290, 5551, 5655, 5
 
 # Log in to DN subscription
 # Only run after having closed R/cleaned environment!
-#url <- "https://www.dn.no/auth/login"
-#uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
-#session <- session(url, user_agent(uastring))
-#form <- html_form(session)[[1]]
-#fill <- html_form_set(form, 
-#                      username = "livewt@live.no",
-#                      password = "masterthesis123")
-#session_submit(session, fill, submit = NULL, config(referer = session$url))
+url <- "https://www.dn.no/auth/login"
+uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
+session <- session(url, user_agent(uastring))
+form <- html_form(session)[[1]]
+fill <- html_form_set(form, 
+                      username = "livewt@live.no",
+                      password = "masterthesis123")
+session_submit(session, fill, submit = NULL, config(referer = session$url))
 
 # Extract text from each article
-#text <- list()
+drafttext <- list()
 
-#for (url in url.list) {
-#  jump <- session %>% 
-#    session_jump_to(url)  # Jump to each URL logged in
-#  html <- read_html(jump) %>% 
-#    html_nodes("article") %>% 
-#    html_nodes("section") %>% 
-#    html_nodes("p")
-#  text <- rbind(text, toString(html))
-#}
+for (url in url.list) {
+  jump <- session %>% 
+    session_jump_to(url)  # Jump to each URL logged in
+  html <- read_html(jump) %>% 
+    html_nodes("article") %>% 
+    html_nodes("section") %>% 
+    html_nodes("p") %>% 
+    html_text()
+  drafttext <- rbind(drafttext, toString(html))
+}
 
-# save(text, file = "text.RData")
+#save(drafttext, file = "drafttext.RData")
 
-load("text.RData")
+load("drafttext.RData")
 
-# Remove HTML code and everything but letters
-text <- text %>% 
-  str_remove_all("class.*?\\n") %>%
-  str_remove_all("<span.*?p>") %>% 
-  str_remove_all("<a.*?>") %>% 
-  str_remove_all("class=\"carousel__item-txt carousel--jobbsearch-narrow__item-txt") %>% 
-  str_remove_all("<aside.*?<\\aside") %>% 
-  str_replace_all("<p", " ") %>% 
-  str_replace_all("</p>", " ") %>% 
-  str_replace_all("\n", " ") %>% 
-  str_replace_all("[^[[:alpha:]][[:space:]]]", " ")
+# Remove everything but letters
+drafttext <- drafttext %>% 
+  str_remove_all("\n") %>%
+  str_remove_all("(Vilkår).*$") %>% 
+  str_remove_all("[^[[:alpha:]][[:space:]]]")
 
 # Make a data frame with dates, URLs and text from each article
-text = as.data.frame(text)
+text = as.data.frame(drafttext)
 
 text$date = as.Date(date.list, "%d.%m.%Y")
 
@@ -338,6 +333,7 @@ which(duplicated(text$text))
 
 text <- text[!duplicated(text$text), ]
 
+#save(text, file = "text.Rdata")
 
 
 ################################################################################
@@ -347,6 +343,8 @@ rm(list = ls())
 load("text.Rdata")
 load("stocks.Rdata")
 
+# Change articles to lowercase
+text$text = str_to_lower(text$text)
 
 # 1. Which companies are never mentioned?
 # Create data frame with "companies" column and "mentioned" column
@@ -377,7 +375,8 @@ text$Company <- ""
 for (company in 1:length(companies)) {
   for (t in 1:length(text$text)) {
     if (grepl(companies[company], text[t,1], fixed = TRUE)) {
-      m <- gregexpr(companies[company], text[t,1])
+      wb <- paste0("\\b", companies[company], "\\b")
+      m <- gregexpr(wb, text[t,1])
       ct <- text[t,4]
       name <- toString(regmatches(text[t,1], m)[[1]])
       name <- str_replace_all(name, " ", "-") 
@@ -544,11 +543,11 @@ end.df$text = na.omit(end.df$text)
 # Final data frame is "df"
 df = end.df
 
-# Save
 save(df,file = "df.Rdata")
 
 ###############################################################################
 
+rm(list = ls())
 load("df.Rdata")
 
 # Stopwords
@@ -630,7 +629,12 @@ sum(filter(LM.norsk, x %in% toks[[3184]])$y) / length(toks[[3184]]) == score[318
 # Insert into df
 df$sentiment = score
 
+save(df, file = "df.RData")
+
 ###############################################################################
+
+rm(list = ls())
+load("df.RData")
 
 # CLASSIFICATION:
 
@@ -669,7 +673,7 @@ logreg <- train(dir~sentiment, data = train, method = "glm", family = binomial,
 
 logpred <- predict(logreg, test)
 
-confusionMatrix(logpred, test$dir)[[2]]
+confusionMatrix(logpred, test$dir)
 
 conf.mat <- confusionMatrix(logpred, test$dir)[[2]]
 
@@ -680,6 +684,15 @@ accuracy
 val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 
 val.set.err
+
+# Need to figure out this ROC plot:
+library(ROCR)
+
+rocpred <- prediction(svmpred, test$dir)
+
+rocperf <- performance(logpred, "tpr", "fpr")
+
+plot(rocperf, colorize = T)
 
 
 # SVM classification:
