@@ -25,6 +25,7 @@ library(gam)
 library(tree)
 library(randomForest)
 library(kernlab)
+library(pROC)
 
 # STOCK PRICE RETRIEVAL
 # List of all registered companies
@@ -685,14 +686,30 @@ val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 
 val.set.err
 
-# Need to figure out this ROC plot:
-library(ROCR)
+# ROC plot for logistic regression: does not work when predictions are 2 and 1 
+logreg2 <- glm(dir~sentiment, data=train, family = "binomial")
 
-rocpred <- prediction(svmpred, test$dir)
+summary(logreg2) # train p-value, significant 
 
-rocperf <- performance(logpred, "tpr", "fpr")
+logpred2 <- predict(logreg2, test, type = "response")
+
+conf.mat <- table(test$dir, logpred2 > 0.5)
+
+accuracy <- sum(diag(conf.mat))/sum(conf.mat)
+
+accuracy
+
+val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
+
+val.set.err
+
+rocpred <- prediction(logpred2, test$dir)
+
+rocperf <- performance(rocpred, "tpr", "fpr")
 
 plot(rocperf, colorize = T)
+
+graphics.off()
 
 
 # SVM classification:
