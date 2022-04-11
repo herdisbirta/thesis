@@ -423,21 +423,21 @@ text$Company <-  text$Company %>%
 
 # Change old company names to new company names 
 text$Company <- text$Company %>% 
-  gsub("Statoil", "Equinor", .) %>% 
-  gsub("Marine Harvest", "Mowi", .) %>% 
-  gsub("PGS", "Petroleum Geo Services", .) %>% 
-  gsub("Noreco", "Norwegian Energy Company", .) %>% 
-  gsub("AF Group","AF Gruppen",.) %>% 
-  gsub("Solstad Farstad","Solstad Offshore",.) %>% 
-  gsub("Vekselbanken","Voss Veksel og Landmandsbank",.) %>% 
-  gsub("Bergen Group", "Endúr", .) %>% 
-  gsub("Vardia Insurance","Insr Insurance",.) %>% 
-  gsub("Skandiabanken","Sbanken",.) %>% 
-  gsub("PSI", "Strongpoint", .) %>% 
-  gsub("Opera Software","Otello",.) %>% 
-  gsub("Apptix", "Carasent", .) %>% 
-  gsub("TTS Group","Nekkar",.) %>% 
-  gsub("Namsos Trafikkselskap", "NTS Group", .)
+  gsub("statoil", "equinor", .) %>% 
+  gsub("marine harvest", "mowi", .) %>% 
+  gsub("pgs", "petroleum geo services", .) %>% 
+  gsub("noreco", "norwegian energy company", .) %>% 
+  gsub("af group","af gruppen",.) %>% 
+  gsub("solstad farstad","solstad offshore",.) %>% 
+  gsub("vekselbanken","voss veksel og landmandsbank",.) %>% 
+  gsub("bergen group", "endúr", .) %>% 
+  gsub("vardia insurance","insr insurance",.) %>% 
+  gsub("skandiabanken","sbanken",.) %>% 
+  gsub("psi", "strongpoint", .) %>% 
+  gsub("opera software","otello",.) %>% 
+  gsub("apptix", "carasent", .) %>% 
+  gsub("tts group","nekkar",.) %>% 
+  gsub("samsos trafikkselskap", "nts group", .)
 
 # Create row with date and company to identify instances where there are more than 1
 # article about a company on a specific date:
@@ -619,18 +619,20 @@ LM.norsk =
 # overlap, that would result in an unreliable sentiment score.
 inner_join(data.frame(x = stopw),LM.norsk,by="x")
 
+# Calculate sentiment score as the ratio between neg and pos words
+LM.pos = LM.norsk %>% 
+  filter(y == 1)
 
-# Create actual sentiment score (sum of +1 and -1 values of positive/negative words
-# divided by the total number of words)
+LM.neg = LM.norsk %>% 
+  filter(y == -1)
+
 score = vector()
 for(t in 1:length(toks)){
+  pos = sum(filter(LM.pos, x %in% toks[[t]])$y)
+  neg = abs(sum(filter(LM.neg, x %in% toks[[t]])$y))
   score = append(score,
-                 sum(filter(LM.norsk, x %in% toks[[t]])$y) / length(toks[[t]]))
+                 pos-neg)
 }
-
-# Test
-sum(filter(LM.norsk, x %in% toks[[1]])$y) / length(toks[[1]]) == score[1]
-sum(filter(LM.norsk, x %in% toks[[3184]])$y) / length(toks[[3184]]) == score[3184]
 
 # Insert into df
 df$sentiment = score
@@ -745,11 +747,11 @@ graphics.off()
 # GBM classification:
 set.seed(1)
 
-xtrain = train[,8:9]
+xtrain = train[,10:11]
 
 ytrain = train$dir
 
-xtest = test[,8:9]
+xtest = test[,10:11]
 
 ytest = test$dir
 
