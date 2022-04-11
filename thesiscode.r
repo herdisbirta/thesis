@@ -334,7 +334,7 @@ which(duplicated(text$text))
 
 text <- text[!duplicated(text$text), ]
 
-#save(text, file = "text.Rdata")
+save(text, file = "text.Rdata")
 
 
 ################################################################################
@@ -525,6 +525,11 @@ df.end =
            paste0(text.x,text.y,text.x.x,text.y.y,text.x.x.x,text.y.y.y,
                   sep=" ")) %>% 
   select(datecomp,text,"date" = date.x,"Company" = Company.x)
+
+# Save+load
+save(df.end, stocks, file = "dftemp.Rdata")
+
+load("dftemp.Rdata")
 
 # Change date: date + 1
 df.end$date <- as.Date(df.end$date) +1
