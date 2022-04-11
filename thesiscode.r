@@ -686,28 +686,18 @@ val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 
 val.set.err
 
-# ROC plot for logistic regression: does not work when predictions are 2 and 1 
-logreg2 <- glm(dir~sentiment, data=train, family = "binomial")
 
-summary(logreg2) # train p-value, significant 
-
-logpred2 <- predict(logreg2, test, type = "response")
-
-conf.mat <- table(test$dir, logpred2 > 0.5)
-
-accuracy <- sum(diag(conf.mat))/sum(conf.mat)
-
-accuracy
-
-val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
-
-val.set.err
-
-rocpred <- prediction(logpred2, test$dir)
+rocpred <- prediction(as.numeric(logpred), test$dir)
 
 rocperf <- performance(rocpred, "tpr", "fpr")
 
 plot(rocperf, colorize = T)
+
+AUC <- confusionMatrix(logpred, test$dir)[[4]][11]
+
+text(0.4, 0.7, "AUC =")
+
+text(0.4, 0.6, AUC)
 
 graphics.off()
 
@@ -720,7 +710,7 @@ svmreg <- train(dir~sentiment, data = train, method = "svmLinear",
 
 svmpred <- predict(svmreg, test)
 
-confusionMatrix(svmpred, test$dir)
+confusionMatrix(svmpred, test$dir)[[4]][1]
 
 conf.mat2 <- confusionMatrix(svmpred, test$dir)[[2]]
 
@@ -732,6 +722,20 @@ val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 
 val.set.err2
 
+
+rocpred <- prediction(as.numeric(svmpred), test$dir)
+
+rocperf <- performance(rocpred, "tpr", "fpr")
+
+plot(rocperf, colorize = T)
+
+AUC <- confusionMatrix(svmpred, test$dir)[[4]][11]
+
+text(0.4, 0.7, "AUC =")
+
+text(0.4, 0.6, AUC)
+
+graphics.off()
 
 # GBM classification:
 set.seed(1)
@@ -766,6 +770,21 @@ val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 val.set.err3 
 
 
+rocpred <- prediction(as.numeric(gbmpred), test$dir)
+
+rocperf <- performance(rocpred, "tpr", "fpr")
+
+plot(rocperf, colorize = T)
+
+AUC <- confusionMatrix(gbmpred, test$dir)[[4]][11]
+
+text(0.4, 0.7, "AUC =")
+
+text(0.4, 0.6, AUC)
+
+graphics.off()
+
+
 # K-Nearest Neighbors: 
 set.seed(1)
 
@@ -784,6 +803,21 @@ accuracy4
 val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 
 val.set.err4
+
+
+rocpred <- prediction(as.numeric(knnpred), test$dir)
+
+rocperf <- performance(rocpred, "tpr", "fpr")
+
+plot(rocperf, colorize = T)
+
+AUC <- confusionMatrix(knnpred, test$dir)[[4]][11]
+
+text(0.4, 0.7, "AUC =")
+
+text(0.4, 0.6, AUC)
+
+graphics.off()
 
 
 # Overview of results from logistic, SVM, GBM and KNN:
