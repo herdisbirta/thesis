@@ -189,7 +189,7 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               thresh.bad.data = 0)
 
 
-# How many companies do we have? (163)
+# How many companies do we have? (162)
 # We originally had 258 companies and tickers, some tickers didn't have
 # any info (deregistered or acquired by other companies and therefore no info),
 # some companies had to be removed to eliminate possible confusion when searching
@@ -229,7 +229,7 @@ stocks =
 
 
 # Create direction-column
-stocks$diff = stocks$av.price - lag(stocks$av.price)
+stocks$diff = stocks$price.close - stocks$price.open
 stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
 
 # Make sure that the last price observation of Akastor and the first observation
@@ -531,7 +531,7 @@ save(df.end, stocks, file = "dftemp.Rdata")
 load("dftemp.Rdata")
 
 # Change date: date + 1
-df.end$date <- as.Date(df.end$date) +1
+df.end$date <- as.Date(df.end$date) 
 
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
