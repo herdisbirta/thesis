@@ -208,15 +208,15 @@ stocks$Company = tolower(stocks$Company)
 companies = unique(stocks$Company)
 
 # Add company names more used/or changed during time period
-companies = c(companies,c("Statoil", "Marine Harvest",
-                          "AF Group","Solstad Farstad",
-                          "Vekselbanken","Bergen Group",
-                          "Vardia Insurance",
-                          "Skandiabanken","PSI",
-                          "Opera Software",
-                          "Apptix","Noreco",
-                          "TTS Group","PGS",
-                          "Namsos Traffikkselskap"))
+companies = c(companies,c("statoil", "marine harvest",
+                          "af group","solstad farstad",
+                          "vekselbanken","bergen group",
+                          "vardia insurance",
+                          "skandiabanken","psi",
+                          "opera software",
+                          "apptix","noreco",
+                          "tts group","pgs",
+                          "namsos traffikkselskap"))
 
 # Calculate a daily price measure
 for(i in 1:nrow(stocks)){
