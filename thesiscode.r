@@ -25,7 +25,6 @@ library(gam)
 library(tree)
 library(randomForest)
 library(kernlab)
-library(pROC)
 
 # STOCK PRICE RETRIEVAL
 # List of all registered companies
@@ -694,17 +693,22 @@ val.set.err <- (conf.mat[1,2]+conf.mat[2,1])/(n/2)
 val.set.err
 
 
-rocpred <- prediction(as.numeric(logpred), test$dir)
+rocpred1 <- prediction(as.numeric(logpred), test$dir)
 
-rocperf <- performance(rocpred, "tpr", "fpr")
+rocperf1 <- performance(rocpred1, "tpr", "fpr")
 
-plot(rocperf, colorize = T)
+plot(rocperf, main = "ROC curve", col = "red")
 
-AUC <- confusionMatrix(logpred, test$dir)[[4]][11]
+AUC1 <- confusionMatrix(logpred, test$dir)[[4]][11]
 
-text(0.4, 0.7, "AUC =")
+text(0.4, 0.65, "AUC =")
 
-text(0.4, 0.6, AUC)
+text(0.4, 0.6, format(round(AUC1, 4)))
+
+lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+
+legend(0, 1, legend=c("ROC curve", "Random"),
+       col=c("red", "black"), lty=1:2, cex=0.8)
 
 graphics.off()
 
@@ -730,17 +734,22 @@ val.set.err2 <- (conf.mat2[1,2]+conf.mat2[2,1])/(n/2)
 val.set.err2
 
 
-rocpred <- prediction(as.numeric(svmpred), test$dir)
+rocpred2 <- prediction(as.numeric(svmpred), test$dir)
 
-rocperf <- performance(rocpred, "tpr", "fpr")
+rocperf2 <- performance(rocpred2, "tpr", "fpr")
 
-plot(rocperf, colorize = T)
+plot(rocperf2, main = "ROC curve", col = "green")
 
-AUC <- confusionMatrix(svmpred, test$dir)[[4]][11]
+AUC2 <- confusionMatrix(svmpred, test$dir)[[4]][11]
 
-text(0.4, 0.7, "AUC =")
+text(0.4, 0.65, "AUC =")
 
-text(0.4, 0.6, AUC)
+text(0.4, 0.6, format(round(AUC2, 4)))
+
+lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+
+legend(0, 1, legend=c("ROC curve", "Random"),
+       col=c("green", "black"), lty=1:2, cex=0.8)
 
 graphics.off()
 
@@ -777,17 +786,22 @@ val.set.err3 <- (conf.mat3[1,2]+conf.mat3[2,1])/(n/2)
 val.set.err3 
 
 
-rocpred <- prediction(as.numeric(gbmpred), test$dir)
+rocpred3 <- prediction(as.numeric(gbmpred), test$dir)
 
-rocperf <- performance(rocpred, "tpr", "fpr")
+rocperf3 <- performance(rocpred3, "tpr", "fpr")
 
-plot(rocperf, colorize = T)
+plot(rocperf3, main = "ROC curve", col = "blue")
 
-AUC <- confusionMatrix(gbmpred, test$dir)[[4]][11]
+AUC3 <- confusionMatrix(gbmpred, test$dir)[[4]][11]
 
-text(0.4, 0.7, "AUC =")
+text(0.4, 0.65, "AUC =")
 
-text(0.4, 0.6, AUC)
+text(0.4, 0.6, format(round(AUC3, 4)))
+
+lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+
+legend(0, 1, legend=c("ROC curve", "Random"),
+       col=c("blue", "black"), lty=1:2, cex=0.8)
 
 graphics.off()
 
@@ -812,17 +826,22 @@ val.set.err4 <- (conf.mat4[1,2]+conf.mat4[2,1])/(n/2)
 val.set.err4
 
 
-rocpred <- prediction(as.numeric(knnpred), test$dir)
+rocpred4 <- prediction(as.numeric(knnpred), test$dir)
 
-rocperf <- performance(rocpred, "tpr", "fpr")
+rocperf4 <- performance(rocpred4, "tpr", "fpr")
 
-plot(rocperf, colorize = T)
+plot(rocperf4, main = "ROC curve", col = "orange")
 
-AUC <- confusionMatrix(knnpred, test$dir)[[4]][11]
+AUC4 <- confusionMatrix(knnpred, test$dir)[[4]][11]
 
-text(0.4, 0.7, "AUC =")
+text(0.4, 0.65, "AUC =")
 
-text(0.4, 0.6, AUC)
+text(0.4, 0.6, format(round(AUC4, 4)))
+
+lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+
+legend(0, 1, legend=c("ROC curve", "Random"),
+       col=c("orange", "black"), lty=1:2, cex=0.8)
 
 graphics.off()
 
@@ -837,6 +856,22 @@ vse.all = c(val.set.err, val.set.err2, val.set.err3, val.set.err4)
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
                          "Validation set error" = vse.all)
+
+plot(rocperf1, main = "ROC curve", col = "red")
+
+plot(rocperf2, add = TRUE, col = "green")
+
+plot(rocperf3, add = TRUE, col = "blue")
+
+plot(rocperf3, add = TRUE, col = "orange")
+
+lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+
+legend(0, 1, legend=c("Logistic regression", "K-nearest neighbors", 
+                      "Gradient boosted trees", "Support vector machine", 
+                      "Random"),
+       col=c("red", "orange", "blue", "green", "black"), lty=c(1,1,1,1,2), cex=0.8)
+
 
 ###############################################################################
 
