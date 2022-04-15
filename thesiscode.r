@@ -236,10 +236,10 @@ stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up",
 # of Aker BP (for example) are not calculated together, first observation of each
 # company gives NA in the dir-column
 # Note: gives error, still works
-for(i in 2:nrow(stocks)){
-  if(stocks$Company[i] != stocks$Company[i-1])
-    stocks$dir[i] = NA
-}
+#for(i in 2:nrow(stocks)){
+#  if(stocks$Company[i] != stocks$Company[i-1])
+#    stocks$dir[i] = NA
+#}        # UNNECCESSARY WHEN USING PRICE.CLOSE-PRICE.OPEN
 
 save(stocks,companies,file="stocks.Rdata")
 
@@ -530,8 +530,8 @@ save(df.end, stocks, file = "dftemp.Rdata")
 
 load("dftemp.Rdata")
 
-# Change date: date + 1
-df.end$date <- as.Date(df.end$date) 
+# Change date: date
+df.end$date <- as.Date(df.end$date)
 
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
@@ -697,7 +697,7 @@ rocpred1 <- prediction(as.numeric(logpred), test$dir)
 
 rocperf1 <- performance(rocpred1, "tpr", "fpr")
 
-plot(rocperf, main = "ROC curve", col = "red")
+plot(rocperf1, main = "ROC curve", col = "red")
 
 AUC1 <- confusionMatrix(logpred, test$dir)[[4]][11]
 
