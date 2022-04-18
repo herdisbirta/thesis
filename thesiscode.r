@@ -114,9 +114,6 @@ all.firms$ticker =
 # Edit ticker to be on the format "TICKER.OL"
 all.firms$ticker = paste0(all.firms$ticker, ".OL")
 
-# Create vector of tickers
-all.tickers = as.vector(all.firms$ticker)
-
 # Manually change company names to their more "referred-to" versions
 # (Yara international becomes Yara, etc.), remove "," and "."
 all.firms$Company = 
@@ -180,6 +177,9 @@ all.firms =
            Company != "Solstad Offshore ser B" & 
            Company != "Adevinta ser A")
 
+# Create vector of tickers
+all.tickers = as.vector(all.firms$ticker)
+
 # Using tickers vector to obtain stock data from Yahoo Finance
 all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               first.date = "2014-01-01",
@@ -188,8 +188,13 @@ all.stocks <- BatchGetSymbols(tickers = all.tickers,
                               do.cache = FALSE,
                               thresh.bad.data = 0)
 
+# Save and load - because BatchGetSymbols takes a while to load
+save(all.stocks,all.firms,file="allstocks.Rdata")
 
-# How many companies do we have? (162)
+load("allstocks.Rdata")
+
+
+# How many companies do we have? (155)
 # We originally had 258 companies and tickers, some tickers didn't have
 # any info (deregistered or acquired by other companies and therefore no info),
 # some companies had to be removed to eliminate possible confusion when searching
@@ -230,16 +235,18 @@ stocks =
 
 # Create direction-column
 stocks$diff = stocks$av.price-lag(stocks$av.price)
+stocks = na.omit(stocks)
 stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
 
 # Make sure that the last price observation of Akastor and the first observation
 # of Aker BP (for example) are not calculated together, first observation of each
 # company gives NA in the dir-column
 # Note: gives error, still works
-#for(i in 2:nrow(stocks)){
-#  if(stocks$Company[i] != stocks$Company[i-1])
-#    stocks$dir[i] = NA
-#}        # UNNECCESSARY WHEN USING PRICE.CLOSE-PRICE.OPEN
+for(i in 2:nrow(stocks)){
+  if(stocks$Company[i] != stocks$Company[i-1])
+    stocks$dir[i] = NA
+}        
+stocks = na.omit(stocks)
 
 save(stocks,companies,file="stocks.Rdata")
 
@@ -533,8 +540,8 @@ save(df.end, stocks, file = "dftemp.Rdata")
 
 load("dftemp.Rdata")
 
-# Change date: date
-df.end$date <- as.Date(df.end$date)
+# Change date: date + 1
+df.end$date <- as.Date(df.end$date) +1
 
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
