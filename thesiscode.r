@@ -229,7 +229,7 @@ stocks =
 
 
 # Create direction-column
-stocks$diff = stocks$price.close - stocks$price.open
+stocks$diff = stocks$av.price-lag(stocks$av.price)
 stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up", "down"))
 
 # Make sure that the last price observation of Akastor and the first observation
