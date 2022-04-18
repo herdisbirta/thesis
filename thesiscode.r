@@ -443,9 +443,12 @@ text$Company <- text$Company %>%
 text$datecomp = paste(text$date, text$Company)
 
 # Select relevant columns
-text2 = text %>% 
-  select(datecomp,text,date,Company) %>% 
-  group_by(datecomp)
+#text2 = text %>% 
+#  select(datecomp,text,date,Company) %>% 
+#  group_by(datecomp)
+
+# All columns to get the urls also
+text2 <- text
 
 # Split text data frame into df1 (non-duplicated rows) and d1b (duplicated rows)
 df1 = text2[!duplicated(text2$datecomp),]
@@ -523,7 +526,7 @@ df.end =
   mutate("text" = 
            paste0(text.x,text.y,text.x.x,text.y.y,text.x.x.x,text.y.y.y,
                   sep=" ")) %>% 
-  select(datecomp,text,"date" = date.x,"Company" = Company.x)
+  select(datecomp,text,"date" = date.x,"Company" = Company.x, "url" = url.x)
 
 # Save+load
 save(df.end, stocks, file = "dftemp.Rdata")
@@ -635,6 +638,13 @@ for(t in 1:length(toks)){
 
 # Insert into df
 df$sentiment = score
+
+# Remove duplicated articles:
+which(duplicated(df$text))
+
+df <- df[!duplicated(df$text), ]
+
+
 
 save(df, file = "df.RData")
 
@@ -756,11 +766,11 @@ graphics.off()
 # GBM classification:
 set.seed(1)
 
-xtrain = train[,10:11]
+xtrain = train[,11:12]
 
 ytrain = train$dir
 
-xtest = test[,10:11]
+xtest = test[,11:12]
 
 ytest = test$dir
 
@@ -863,7 +873,7 @@ plot(rocperf2, add = TRUE, col = "green")
 
 plot(rocperf3, add = TRUE, col = "blue")
 
-plot(rocperf3, add = TRUE, col = "orange")
+plot(rocperf4, add = TRUE, col = "orange")
 
 lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
 
