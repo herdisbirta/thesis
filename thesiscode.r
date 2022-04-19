@@ -718,11 +718,11 @@ plot(rocperf1, main = "ROC curve", col = "red")
 
 AUC1 <- confusionMatrix(logpred, test$dir)[[4]][11]
 
-text(0.4, 0.65, "AUC =")
+text(0.4, 0.67, "AUC =")
 
 text(0.4, 0.6, format(round(AUC1, 4)))
 
-lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+lines(x = c(0,1), y = c(0,1), type = "l", lty = 2)
 
 legend(0, 1, legend=c("ROC curve", "Random"),
        col=c("red", "black"), lty=1:2, cex=0.8)
@@ -759,11 +759,11 @@ plot(rocperf2, main = "ROC curve", col = "green")
 
 AUC2 <- confusionMatrix(svmpred, test$dir)[[4]][11]
 
-text(0.4, 0.65, "AUC =")
+text(0.4, 0.67, "AUC =")
 
 text(0.4, 0.6, format(round(AUC2, 4)))
 
-lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+lines(x = c(0,1), y = c(0,1), type = "l", lty = 2)
 
 legend(0, 1, legend=c("ROC curve", "Random"),
        col=c("green", "black"), lty=1:2, cex=0.8)
@@ -811,11 +811,11 @@ plot(rocperf3, main = "ROC curve", col = "blue")
 
 AUC3 <- confusionMatrix(gbmpred, test$dir)[[4]][11]
 
-text(0.4, 0.65, "AUC =")
+text(0.4, 0.67, "AUC =")
 
 text(0.4, 0.6, format(round(AUC3, 4)))
 
-lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+lines(x = c(0,1), y = c(0,1), type = "l", lty = 2)
 
 legend(0, 1, legend=c("ROC curve", "Random"),
        col=c("blue", "black"), lty=1:2, cex=0.8)
@@ -851,11 +851,11 @@ plot(rocperf4, main = "ROC curve", col = "orange")
 
 AUC4 <- confusionMatrix(knnpred, test$dir)[[4]][11]
 
-text(0.4, 0.65, "AUC =")
+text(0.4, 0.67, "AUC =")
 
 text(0.4, 0.6, format(round(AUC4, 4)))
 
-lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+lines(x = c(0,1), y = c(0,1), type = "l", lty = 2)
 
 legend(0, 1, legend=c("ROC curve", "Random"),
        col=c("orange", "black"), lty=1:2, cex=0.8)
@@ -882,7 +882,7 @@ plot(rocperf3, add = TRUE, col = "blue")
 
 plot(rocperf4, add = TRUE, col = "orange")
 
-lines(x = c(0,100), y = c(0,100), type = "l", lty = 2)
+lines(x = c(0,1), y = c(0,1), type = "l", lty = 2)
 
 legend(0, 1, legend=c("Logistic regression", "K-nearest neighbors", 
                       "Gradient boosted trees", "Support vector machine", 
