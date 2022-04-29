@@ -540,8 +540,22 @@ save(df.end, stocks, file = "dftemp.Rdata")
 
 load("dftemp.Rdata")
 
-# Change date: date + 1
-df.end$date <- as.Date(df.end$date) +1
+# Change date: 
+df.end = 
+  df.end %>% 
+  mutate(day = weekdays(date),
+         date2 = case_when(day == "Friday" ~ as.Date(date) + 3,
+                           day == "Saturday" ~ as.Date(date) + 2,
+                           day != "Friday" & day != "Saturday" ~ as.Date(date)+1,
+                           TRUE ~ date))
+
+# Check if data frame above does what we wanted it to do!
+
+df.end$date = df.end$date2
+
+df.end = 
+  df.end %>% 
+  select(-day,-date2)
 
 # Merge df.end with stocks by date and company
 end.df <- merge(df.end, stocks, by=c("date","Company")) # Merge text and stocks df's
@@ -673,7 +687,7 @@ df = na.omit(df)
 df$dir <- as.factor(df$dir)
 
 # Split data:
-set.seed(1)
+set.seed(2)
 
 n = nrow(df)
 
@@ -690,7 +704,7 @@ ctrl <- trainControl(method = "cv", number = 10)
 
 
 # Logistic regression:
-set.seed(1)
+set.seed(2)
 
 logreg <- train(dir~sentiment, data = train, method = "glm", family = binomial, 
                 trControl = ctrl)
@@ -731,7 +745,7 @@ graphics.off()
 
 
 # SVM classification:
-set.seed(1)
+set.seed(2)
 
 svmreg <- train(dir~sentiment, data = train, method = "svmLinear",
                  trControl = ctrl)
@@ -771,7 +785,7 @@ legend(0, 1, legend=c("ROC curve", "Random"),
 graphics.off()
 
 # GBM classification:
-set.seed(1)
+set.seed(2)
 
 xtrain = train[,11:12]
 
@@ -783,7 +797,7 @@ ytest = test$dir
 
 x = cbind(xtrain, ytrain)
 
-set.seed(1)
+set.seed(2)
 
 gbmfit = train(dir~sentiment, data=xtrain, method="gbm", 
                distribution = "bernoulli", trControl=ctrl)
@@ -824,7 +838,7 @@ graphics.off()
 
 
 # K-Nearest Neighbors: 
-set.seed(1)
+set.seed(2)
 
 knn <- train(dir~sentiment, data = train, method = "knn", trControl = ctrl)
 
@@ -889,6 +903,14 @@ legend(0, 1, legend=c("Logistic regression", "K-nearest neighbors",
                       "Random"),
        col=c("red", "orange", "blue", "green", "black"), lty=c(1,1,1,1,2), cex=0.8)
 
+
+# Retreive p-value, z-value and coefficients
+summary(logreg)$coefficients    # Two stars: significance code is 0.01
+summary(knn)
+summary(gbmfit)
+svmreg
+
+knn$control$p
 
 ###############################################################################
 
