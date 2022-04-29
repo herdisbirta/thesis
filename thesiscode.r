@@ -544,9 +544,9 @@ load("dftemp.Rdata")
 df.end = 
   df.end %>% 
   mutate(day = weekdays(date),
-         date2 = case_when(day == "Friday" ~ as.Date(date) + 3,
-                           day == "Saturday" ~ as.Date(date) + 2,
-                           day != "Friday" & day != "Saturday" ~ as.Date(date)+1,
+         date2 = case_when(day == "fredag" ~ as.Date(date) + 3,
+                           day == "lørdag" ~ as.Date(date) + 2,
+                           day != "fredag" & day != "lørdag" ~ as.Date(date)+1,
                            TRUE ~ date))
 
 # Check if data frame above does what we wanted it to do!
