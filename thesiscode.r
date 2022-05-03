@@ -246,9 +246,13 @@ for(i in 2:nrow(stocks)){
   if(stocks$Company[i] != stocks$Company[i-1])
     stocks$dir[i] = NA
 }        
+
+# Remove "no change" rows
+stocks = stocks[!stocks$dir=="no change",]
+
 stocks = na.omit(stocks)
 
-save(stocks,companies,file="stocks.Rdata")
+save(stocks, companies, file = "stocks.Rdata")
 
 ##############################################################################
 
@@ -544,9 +548,9 @@ load("dftemp.Rdata")
 df.end = 
   df.end %>% 
   mutate(day = weekdays(date),
-         date2 = case_when(day == "fredag" ~ as.Date(date) + 3,
-                           day == "lørdag" ~ as.Date(date) + 2,
-                           day != "fredag" & day != "lørdag" ~ as.Date(date)+1,
+         date2 = case_when(day == "Friday" ~ as.Date(date) + 3,
+                           day == "Saturday" ~ as.Date(date) + 2,
+                           day != "Friday" & day != "Saturday" ~ as.Date(date)+1,
                            TRUE ~ date))
 
 # Check if data frame above does what we wanted it to do!
