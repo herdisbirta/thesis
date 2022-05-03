@@ -680,13 +680,6 @@ load("df.RData")
 
 # CLASSIFICATION:
 
-# Remove days with no change (better accuracy)
-
-df <- df[!df$dir=="no change",]
-
-# This creates a NA row - remove
-df = na.omit(df)
-
 # change y value to class factor
 df$dir <- as.factor(df$dir)
 
@@ -891,6 +884,18 @@ vse.all = c(val.set.err, val.set.err2, val.set.err3, val.set.err4)
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
                          "Validation set error" = vse.all)
+
+# Numbers for table to identify the nature of the relationship (keep?)
+highup = sum(df$dir == "up" & df$sentiment > 0)
+lowup = sum(df$dir == "up" & df$sentiment < 0)
+neutralup = sum(df$dir == "up" & df$sentiment == 0)
+
+highdown = sum(df$dir == "down" & df$sentiment > 0)
+lowdown = sum(df$dir == "down" & df$sentiment < 0)
+neutraldown = sum(df$dir == "down" & df$sentiment == 0)
+
+
+# Plot results
 
 plot(rocperf1, main = "ROC curve", col = "red")
 
