@@ -576,12 +576,12 @@ end.df$text = na.omit(end.df$text)
 # Final data frame is "df"
 df = end.df
 
-save(df,file = "df.Rdata")
+save(df,file = "df1.Rdata")
 
 ###############################################################################
 
 rm(list = ls())
-load("df.Rdata")
+load("df1.Rdata")
 
 # Stopwords
 # Stopwords do not have capital letters or punctuation - remove
@@ -600,6 +600,7 @@ stopw = stopwords::stopwords(language = "no")
 toks = corpus %>% 
   tokens() %>% 
   tokens_remove(stopw)
+
 
 ###############################################################################
 
@@ -663,7 +664,7 @@ for(t in 1:length(toks)){
 
 # Insert into df
 df$sentiment = score
-
+  
 # Remove duplicated articles:
 which(duplicated(df$text))
 
