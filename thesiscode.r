@@ -109,7 +109,8 @@ all.firms$ticker =
   gsub("ULTIMO","ULTI",.) %>% 
   gsub("WALWIL","WAWI",.) %>% 
   gsub("SCH","SCHA",.) %>% 
-  gsub("WBULK","WEST",.)
+  gsub("WBULK","WEST",.) %>% 
+  gsub("TIETOO","TIETO",.)
 
 # Edit ticker to be on the format "TICKER.OL"
 all.firms$ticker = paste0(all.firms$ticker, ".OL")
@@ -684,8 +685,11 @@ load("df.RData")
 # change y value to class factor
 df$dir <- as.factor(df$dir)
 
+# TEST - REMOVE sentiment = 0
+df = df[!df$sentiment==0,]
+
 # Split data:
-set.seed(2)
+set.seed(3)
 
 n = nrow(df)
 
@@ -702,7 +706,7 @@ ctrl <- trainControl(method = "cv", number = 10)
 
 
 # Logistic regression:
-set.seed(2)
+set.seed(3)
 
 logreg <- train(dir~sentiment, data = train, method = "glm", family = binomial, 
                 trControl = ctrl)
@@ -743,7 +747,7 @@ graphics.off()
 
 
 # SVM classification:
-set.seed(2)
+set.seed(3)
 
 svmreg <- train(dir~sentiment, data = train, method = "svmLinear",
                  trControl = ctrl)
@@ -783,7 +787,7 @@ legend(0, 1, legend=c("ROC curve", "Random"),
 graphics.off()
 
 # GBM classification:
-set.seed(2)
+set.seed(3)
 
 xtrain = train[,11:12]
 
@@ -795,7 +799,7 @@ ytest = test$dir
 
 x = cbind(xtrain, ytrain)
 
-set.seed(2)
+set.seed(3)
 
 gbmfit = train(dir~sentiment, data=xtrain, method="gbm", 
                distribution = "bernoulli", trControl=ctrl)
@@ -836,7 +840,7 @@ graphics.off()
 
 
 # K-Nearest Neighbors: 
-set.seed(2)
+set.seed(3)
 
 knn <- train(dir~sentiment, data = train, method = "knn", trControl = ctrl)
 
