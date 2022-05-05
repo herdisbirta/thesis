@@ -745,6 +745,14 @@ legend(0, 1, legend=c("ROC curve", "Random"),
 
 graphics.off()
 
+# Create table for logistic regression
+logreg.test = data.frame("sentiment" = test$sentiment,
+                         "direction" = logpred)
+highup = sum(logreg.test$direction == "up" & logreg.test$sentiment > 0)
+lowup = sum(logreg.test$direction == "up" & logreg.test$sentiment < 0)
+highdown = sum(logreg.test$direction == "down" & logreg.test$sentiment > 0)
+lowdown = sum(logreg.test$direction == "down" & logreg.test$sentiment < 0)
+
 
 # SVM classification:
 set.seed(3)
@@ -886,18 +894,12 @@ acc.all = c(accuracy, accuracy2, accuracy3, accuracy4)
 
 vse.all = c(val.set.err, val.set.err2, val.set.err3, val.set.err4)
 
+auc.all = c(AUC1,AUC2,AUC3,AUC4)
+
 final.table = data.frame(method,
                          "Accuracy" = acc.all,
-                         "Validation set error" = vse.all)
-
-# Numbers for table to identify the nature of the relationship (keep?)
-highup = sum(df$dir == "up" & df$sentiment > 0)
-lowup = sum(df$dir == "up" & df$sentiment < 0)
-neutralup = sum(df$dir == "up" & df$sentiment == 0)
-
-highdown = sum(df$dir == "down" & df$sentiment > 0)
-lowdown = sum(df$dir == "down" & df$sentiment < 0)
-neutraldown = sum(df$dir == "down" & df$sentiment == 0)
+                         "Validation set error" = vse.all,
+                         "AUC" = auc.all)
 
 
 # Plot results
@@ -917,14 +919,6 @@ legend(0, 1, legend=c("Logistic regression", "K-nearest neighbors",
                       "Random"),
        col=c("red", "orange", "blue", "green", "black"), lty=c(1,1,1,1,2), cex=0.8)
 
-
-# Retreive p-value, z-value and coefficients
-summary(logreg)$coefficients    # Two stars: significance code is 0.01
-summary(knn)
-summary(gbmfit)
-svmreg
-
-knn$control$p
 
 ###############################################################################
 
