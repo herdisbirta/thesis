@@ -220,8 +220,7 @@ companies = c(companies,c("statoil", "marine harvest",
                           "skandiabanken","psi",
                           "opera software",
                           "apptix","noreco",
-                          "tts group","pgs",
-                          "namsos trafikkselskap"))
+                          "tts group","pgs"))
 
 # Calculate a daily price measure
 for(i in 1:nrow(stocks)){
@@ -242,7 +241,6 @@ stocks$dir = ifelse(stocks$diff == 0, "no change", ifelse(stocks$diff > 0, "up",
 # Make sure that the last price observation of Akastor and the first observation
 # of Aker BP (for example) are not calculated together, first observation of each
 # company gives NA in the dir-column
-# Note: gives error, still works
 for(i in 2:nrow(stocks)){
   if(stocks$Company[i] != stocks$Company[i-1])
     stocks$dir[i] = NA
@@ -447,8 +445,7 @@ text$Company <- text$Company %>%
   gsub("psi", "strongpoint", .) %>% 
   gsub("opera software","otello",.) %>% 
   gsub("apptix", "carasent", .) %>% 
-  gsub("tts group","nekkar",.) %>% 
-  gsub("samsos trafikkselskap", "nts group", .)
+  gsub("tts group","nekkar",.)
 
 # Create row with date and company to identify instances where there are more than 1
 # article about a company on a specific date:
