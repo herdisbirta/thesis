@@ -221,7 +221,7 @@ companies = c(companies,c("statoil", "marine harvest",
                           "opera software",
                           "apptix","noreco",
                           "tts group","pgs",
-                          "namsos traffikkselskap"))
+                          "namsos trafikkselskap"))
 
 # Calculate a daily price measure
 for(i in 1:nrow(stocks)){
@@ -762,7 +762,7 @@ svmreg <- train(dir~sentiment, data = train, method = "svmLinear",
 
 svmpred <- predict(svmreg, test)
 
-confusionMatrix(svmpred, test$dir)[[4]][1]
+confusionMatrix(svmpred, test$dir)
 
 conf.mat2 <- confusionMatrix(svmpred, test$dir)[[2]]
 
